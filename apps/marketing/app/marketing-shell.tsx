@@ -6,7 +6,7 @@ import { DownloadDropdown } from "./download-dropdown";
 
 type Theme = "light" | "dark";
 
-const STORAGE_KEY = "helmor-marketing-theme";
+const STORAGE_KEY = "kmor-marketing-theme";
 // Keep the product preview tilt subtle so it reads as ambient polish.
 const MAX_TILT_DEG = 4;
 // Atmospheric FX — backlit dust mote count. 18 is the sweet spot from the
@@ -219,18 +219,18 @@ export function MarketingShell({ data }: { data: RepoData }) {
 					{/* eslint-disable-next-line @next/next/no-img-element */}
 					<img
 						className="brand-mark-dark"
-						src="/helmor-logo-dark.svg"
+						src="/kmor-logo-dark.svg"
 						alt=""
 						aria-hidden="true"
 					/>
 					{/* eslint-disable-next-line @next/next/no-img-element */}
 					<img
 						className="brand-mark-light"
-						src="/helmor-logo-light.svg"
+						src="/kmor-logo-light.svg"
 						alt=""
 						aria-hidden="true"
 					/>
-					Helmor
+					Kmor
 				</a>
 				<span className="version">{data.version}</span>
 				<div className="links">
@@ -581,7 +581,7 @@ export function MarketingShell({ data }: { data: RepoData }) {
 					<h1 className="hero">
 						<span className="line2">AI made coding faster.</span>
 						<span className="and" />
-						Helmor is about finishing the rest of the loop.
+						Kmor is about finishing the rest of the loop.
 					</h1>
 
 					<p className="sub">
@@ -613,22 +613,22 @@ export function MarketingShell({ data }: { data: RepoData }) {
 				<div className="mock-wrap" ref={wrapRef}>
 					<div
 						className="mock-stage"
-						aria-label="Helmor product preview"
+						aria-label="Kmor product preview"
 						ref={stageRef}
 					>
 						<div className="shot dark-layer">
 							{/* eslint-disable-next-line @next/next/no-img-element */}
 							<img
-								src="/helmor-screenshot-dark.png"
-								alt="Helmor (dark)"
+								src="/kmor-screenshot-dark.png"
+								alt="Kmor (dark)"
 								draggable={false}
 							/>
 						</div>
 						<div className="shot light-layer">
 							{/* eslint-disable-next-line @next/next/no-img-element */}
 							<img
-								src="/helmor-screenshot-light.png"
-								alt="Helmor (light)"
+								src="/kmor-screenshot-light.png"
+								alt="Kmor (light)"
 								draggable={false}
 							/>
 						</div>

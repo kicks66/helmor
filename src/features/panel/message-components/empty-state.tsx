@@ -6,7 +6,7 @@ import {
 	MessageSquareText,
 	Play,
 } from "lucide-react";
-import { HelmorLogoAnimated } from "@/components/helmor-logo-animated";
+import { KmorLogoAnimated } from "@/components/kmor-logo-animated";
 import {
 	Empty,
 	EmptyContent,
@@ -61,7 +61,7 @@ export function EmptyState({
 			<EmptyHeader>
 				<EmptyMedia className="mb-1 text-muted-foreground [&_svg:not([class*='size-'])]:size-7">
 					{isCreatingWorkspace ? (
-						<HelmorLogoAnimated size={28} className="opacity-85" />
+						<KmorLogoAnimated size={28} className="opacity-85" />
 					) : (
 						<MessageSquareText strokeWidth={1.7} />
 					)}
@@ -75,7 +75,7 @@ export function EmptyState({
 				</EmptyTitle>
 				<EmptyDescription>
 					{isCreatingWorkspace
-						? "Helmor is still preparing this workspace. Messaging will unlock automatically when setup finishes."
+						? "Kmor is still preparing this workspace. Messaging will unlock automatically when setup finishes."
 						: hasSession
 							? "This session does not have any messages yet."
 							: "Choose a session from the header to inspect its timeline."}

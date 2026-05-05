@@ -12,8 +12,7 @@ export function CliInstallPanel() {
 	const [status, setStatus] = useState<CliStatus | null>(null);
 	const [installing, setInstalling] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const commandName =
-		status?.buildMode === "development" ? "helmor-dev" : "helmor";
+	const commandName = status?.buildMode === "development" ? "kmor-dev" : "kmor";
 	const buildLabel = status?.buildMode === "development" ? "Debug" : "Release";
 	const isManaged = status?.installState === "managed";
 	const isStale = status?.installState === "stale";

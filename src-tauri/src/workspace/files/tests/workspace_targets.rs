@@ -11,7 +11,7 @@ use super::{
 
 #[test]
 fn parse_workspace_path_normal() {
-    let path = Path::new("/Users/x/helmor-dev/workspaces/my-repo/feature-branch");
+    let path = Path::new("/Users/x/kmor-dev/workspaces/my-repo/feature-branch");
     let (repo, dir) = parse_workspace_path(path).unwrap();
     assert_eq!(repo, "my-repo");
     assert_eq!(dir, "feature-branch");
@@ -90,11 +90,7 @@ fn resolve_target_ref_uses_configured_target_branch() {
     let repo_root = test_dir.root.join("source-repo");
     fs::create_dir_all(&repo_root).unwrap();
     git_ops::run_git(["init", "-b", "main"], Some(&repo_root)).unwrap();
-    git_ops::run_git(
-        ["config", "user.email", "test@helmor.test"],
-        Some(&repo_root),
-    )
-    .unwrap();
+    git_ops::run_git(["config", "user.email", "test@kmor.test"], Some(&repo_root)).unwrap();
     git_ops::run_git(["config", "user.name", "Test"], Some(&repo_root)).unwrap();
     git_ops::run_git(["config", "commit.gpgsign", "false"], Some(&repo_root)).unwrap();
     fs::write(repo_root.join("f.txt"), "base\n").unwrap();

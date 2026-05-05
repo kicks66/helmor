@@ -32,10 +32,7 @@ import {
 	buildCommitButtonPrompt,
 	isActionSessionMode,
 } from "@/lib/commit-button-prompts";
-import {
-	helmorQueryKeys,
-	workspaceForgeQueryOptions,
-} from "@/lib/query-client";
+import { kmorQueryKeys, workspaceForgeQueryOptions } from "@/lib/query-client";
 import { moveWorkspaceToGroup } from "@/lib/workspace-helpers";
 import type { PushWorkspaceToast } from "@/lib/workspace-toast-context";
 import type { CommitButtonState, WorkspaceCommitButtonMode } from "../button";
@@ -67,25 +64,25 @@ function applyOptimisticWorkspaceStatus(
 	nextStatus: WorkspaceStatus,
 ): () => void {
 	const previousGroups = queryClient.getQueryData<WorkspaceGroup[]>(
-		helmorQueryKeys.workspaceGroups,
+		kmorQueryKeys.workspaceGroups,
 	);
 	const previousDetail = queryClient.getQueryData<WorkspaceDetail | null>(
-		helmorQueryKeys.workspaceDetail(workspaceId),
+		kmorQueryKeys.workspaceDetail(workspaceId),
 	);
 
 	queryClient.setQueryData<WorkspaceGroup[] | undefined>(
-		helmorQueryKeys.workspaceGroups,
+		kmorQueryKeys.workspaceGroups,
 		(current) => moveWorkspaceToGroup(current, workspaceId, nextStatus),
 	);
 	queryClient.setQueryData<WorkspaceDetail | null | undefined>(
-		helmorQueryKeys.workspaceDetail(workspaceId),
+		kmorQueryKeys.workspaceDetail(workspaceId),
 		(detail) => (detail ? { ...detail, status: nextStatus } : detail),
 	);
 
 	return () => {
-		queryClient.setQueryData(helmorQueryKeys.workspaceGroups, previousGroups);
+		queryClient.setQueryData(kmorQueryKeys.workspaceGroups, previousGroups);
 		queryClient.setQueryData(
-			helmorQueryKeys.workspaceDetail(workspaceId),
+			kmorQueryKeys.workspaceDetail(workspaceId),
 			previousDetail,
 		);
 	};
@@ -200,16 +197,16 @@ export function useWorkspaceCommitLifecycle({
 	const refreshWorkspaceRemoteStatus = useCallback(
 		(workspaceId: string) => {
 			void queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceGitActionStatus(workspaceId),
+				queryKey: kmorQueryKeys.workspaceGitActionStatus(workspaceId),
 			});
 			void queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceForgeActionStatus(workspaceId),
+				queryKey: kmorQueryKeys.workspaceForgeActionStatus(workspaceId),
 			});
 			void queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceDetail(workspaceId),
+				queryKey: kmorQueryKeys.workspaceDetail(workspaceId),
 			});
 			void queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceGroups,
+				queryKey: kmorQueryKeys.workspaceGroups,
 			});
 		},
 		[queryClient],
@@ -252,7 +249,7 @@ export function useWorkspaceCommitLifecycle({
 						);
 						// Trigger a refresh so the status resolves sooner
 						void queryClient.invalidateQueries({
-							queryKey: helmorQueryKeys.workspaceForgeActionStatus(workspaceId),
+							queryKey: kmorQueryKeys.workspaceForgeActionStatus(workspaceId),
 						});
 						return;
 					}
@@ -260,7 +257,7 @@ export function useWorkspaceCommitLifecycle({
 
 				const cachedChangeRequest =
 					queryClient.getQueryData<ChangeRequestInfo | null>(
-						helmorQueryKeys.workspaceChangeRequest(workspaceId),
+						kmorQueryKeys.workspaceChangeRequest(workspaceId),
 					);
 				const optimisticChangeRequest: ChangeRequestInfo | null =
 					cachedChangeRequest
@@ -278,7 +275,7 @@ export function useWorkspaceCommitLifecycle({
 					changeRequest: optimisticChangeRequest,
 				});
 				queryClient.setQueryData(
-					helmorQueryKeys.workspaceChangeRequest(workspaceId),
+					kmorQueryKeys.workspaceChangeRequest(workspaceId),
 					optimisticChangeRequest,
 				);
 				// Move the workspace to its target sidebar group + flip the
@@ -298,7 +295,7 @@ export function useWorkspaceCommitLifecycle({
 								? await mergeWorkspaceChangeRequest(workspaceId)
 								: await closeWorkspaceChangeRequest(workspaceId);
 						queryClient.setQueryData(
-							helmorQueryKeys.workspaceChangeRequest(workspaceId),
+							kmorQueryKeys.workspaceChangeRequest(workspaceId),
 							result,
 						);
 					} catch (error) {
@@ -309,7 +306,7 @@ export function useWorkspaceCommitLifecycle({
 							"destructive",
 						);
 						queryClient.setQueryData(
-							helmorQueryKeys.workspaceChangeRequest(workspaceId),
+							kmorQueryKeys.workspaceChangeRequest(workspaceId),
 							cachedChangeRequest,
 						);
 						restoreWorkspaceStatus();
@@ -379,7 +376,7 @@ export function useWorkspaceCommitLifecycle({
 				console.log("[commitButton] session created", { sessionId });
 
 				await queryClient.invalidateQueries({
-					queryKey: helmorQueryKeys.workspaceSessions(workspaceId),
+					queryKey: kmorQueryKeys.workspaceSessions(workspaceId),
 				});
 
 				setCommitLifecycle((current) =>
@@ -527,7 +524,7 @@ export function useWorkspaceCommitLifecycle({
 				// lane / inspector header reflect the PR state on the same
 				// frame as the lifecycle transition.
 				queryClient.setQueryData(
-					helmorQueryKeys.workspaceChangeRequest(workspaceId),
+					kmorQueryKeys.workspaceChangeRequest(workspaceId),
 					currentChangeRequest ?? null,
 				);
 				const optimisticStatus = deriveStatusFromChangeRequest(
@@ -598,14 +595,14 @@ export function useWorkspaceCommitLifecycle({
 					await hideSession(trackedSessionId);
 					await Promise.all([
 						queryClient.invalidateQueries({
-							queryKey: helmorQueryKeys.workspaceSessions(workspaceId),
+							queryKey: kmorQueryKeys.workspaceSessions(workspaceId),
 						}),
 						queryClient.invalidateQueries({
-							queryKey: helmorQueryKeys.workspaceDetail(workspaceId),
+							queryKey: kmorQueryKeys.workspaceDetail(workspaceId),
 						}),
 					]);
 					const detail = queryClient.getQueryData<WorkspaceDetail | null>(
-						helmorQueryKeys.workspaceDetail(workspaceId),
+						kmorQueryKeys.workspaceDetail(workspaceId),
 					);
 					onSelectSession(detail?.activeSessionId ?? null);
 				} catch (error) {

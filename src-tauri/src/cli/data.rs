@@ -1,4 +1,4 @@
-//! `helmor data` — data directory / database info.
+//! `kmor data` — data directory / database info.
 
 use anyhow::Result;
 

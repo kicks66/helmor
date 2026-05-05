@@ -362,13 +362,10 @@ export const WorkspacesSidebar = memo(function WorkspacesSidebar({
 			setIsRepoPickerOpen(true);
 		};
 
-		window.addEventListener(
-			"helmor:open-new-workspace",
-			handleOpenNewWorkspace,
-		);
+		window.addEventListener("kmor:open-new-workspace", handleOpenNewWorkspace);
 		return () =>
 			window.removeEventListener(
-				"helmor:open-new-workspace",
+				"kmor:open-new-workspace",
 				handleOpenNewWorkspace,
 			);
 	}, [addRepositoryBusy, createBusy, workspaceActionsBusy]);
@@ -380,12 +377,12 @@ export const WorkspacesSidebar = memo(function WorkspacesSidebar({
 		};
 
 		window.addEventListener(
-			"helmor:open-add-repository",
+			"kmor:open-add-repository",
 			handleOpenAddRepository,
 		);
 		return () =>
 			window.removeEventListener(
-				"helmor:open-add-repository",
+				"kmor:open-add-repository",
 				handleOpenAddRepository,
 			);
 	}, [addRepositoryBusy, createBusy, workspaceActionsBusy]);

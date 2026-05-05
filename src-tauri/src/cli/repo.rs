@@ -1,4 +1,4 @@
-//! `helmor repo` — repository management.
+//! `kmor repo` — repository management.
 
 use anyhow::Result;
 

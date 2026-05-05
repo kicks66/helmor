@@ -1,4 +1,4 @@
-//! `helmor workspace` — workspace CRUD, git, archive, linked dirs.
+//! `kmor workspace` — workspace CRUD, git, archive, linked dirs.
 
 use anyhow::{bail, Context, Result};
 

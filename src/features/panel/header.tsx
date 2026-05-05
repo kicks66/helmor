@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { BranchPickerPopover } from "@/components/branch-picker";
-import { HelmorThinkingIndicator } from "@/components/helmor-thinking-indicator";
 import { ClaudeIcon, OpenAIIcon } from "@/components/icons";
+import { KmorThinkingIndicator } from "@/components/kmor-thinking-indicator";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -49,7 +49,7 @@ import {
 	type WorkspaceDetail,
 	type WorkspaceSessionSummary,
 } from "@/lib/api";
-import { helmorQueryKeys } from "@/lib/query-client";
+import { kmorQueryKeys } from "@/lib/query-client";
 import { cn } from "@/lib/utils";
 import {
 	getWorkspaceBranchTone,
@@ -156,7 +156,7 @@ export const WorkspacePanelHeader = memo(function WorkspacePanelHeader({
 		}
 		const trimmed = editingBranch.trim();
 		if (trimmed && trimmed !== workspace.branch) {
-			const detailKey = helmorQueryKeys.workspaceDetail(workspace.id);
+			const detailKey = kmorQueryKeys.workspaceDetail(workspace.id);
 			const previous = queryClient.getQueryData<WorkspaceDetail | null>(
 				detailKey,
 			);
@@ -203,7 +203,7 @@ export const WorkspacePanelHeader = memo(function WorkspacePanelHeader({
 			});
 
 			void queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.repoScripts(workspace.repoId, workspace.id),
+				queryKey: kmorQueryKeys.repoScripts(workspace.repoId, workspace.id),
 			});
 			onSessionsChanged?.();
 			onSelectSession?.(result.sessionId);
@@ -448,7 +448,7 @@ export const WorkspacePanelHeader = memo(function WorkspacePanelHeader({
 										if (branch === workspace.intendedTargetBranch) {
 											return;
 										}
-										const detailKey = helmorQueryKeys.workspaceDetail(
+										const detailKey = kmorQueryKeys.workspaceDetail(
 											workspace.id,
 										);
 										const previousDetail =
@@ -468,7 +468,7 @@ export const WorkspacePanelHeader = memo(function WorkspacePanelHeader({
 										// Invalidate changes so diff section shows loading.
 										if (workspace.rootPath) {
 											void queryClient.invalidateQueries({
-												queryKey: helmorQueryKeys.workspaceChanges(
+												queryKey: kmorQueryKeys.workspaceChanges(
 													workspace.rootPath,
 												),
 											});
@@ -479,13 +479,13 @@ export const WorkspacePanelHeader = memo(function WorkspacePanelHeader({
 												onWorkspaceChanged?.();
 												// Recompute sync status vs. new target now; don't wait for 10s poll.
 												void queryClient.invalidateQueries({
-													queryKey: helmorQueryKeys.workspaceGitActionStatus(
+													queryKey: kmorQueryKeys.workspaceGitActionStatus(
 														workspace.id,
 													),
 												});
 												if (workspace.rootPath) {
 													void queryClient.invalidateQueries({
-														queryKey: helmorQueryKeys.workspaceChanges(
+														queryKey: kmorQueryKeys.workspaceChanges(
 															workspace.rootPath,
 														),
 													});
@@ -817,7 +817,7 @@ function SessionProviderIcon({
 	active: boolean;
 }) {
 	if (active) {
-		return <HelmorThinkingIndicator size={14} />;
+		return <KmorThinkingIndicator size={14} />;
 	}
 	if (agentType === "codex") {
 		return <OpenAIIcon className="size-3 shrink-0 text-muted-foreground" />;

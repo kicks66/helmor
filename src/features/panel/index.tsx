@@ -5,7 +5,7 @@ import type {
 	WorkspaceDetail,
 	WorkspaceSessionSummary,
 } from "@/lib/api";
-import { HelmorProfiler } from "@/lib/dev-react-profiler";
+import { KmorProfiler } from "@/lib/dev-react-profiler";
 import type { WorkspaceScriptType } from "@/lib/workspace-script-actions";
 import { WorkspacePanelHeader } from "./header";
 import { EmptyState, preloadStreamdown } from "./message-components";
@@ -109,7 +109,7 @@ export const WorkspacePanel = memo(function WorkspacePanel({
 	}, []);
 
 	return (
-		<HelmorProfiler id="WorkspacePanel">
+		<KmorProfiler id="WorkspacePanel">
 			<div className="flex min-h-0 flex-1 flex-col bg-transparent">
 				<WorkspacePanelHeader
 					workspace={workspace}
@@ -154,6 +154,6 @@ export const WorkspacePanel = memo(function WorkspacePanel({
 					)}
 				</div>
 			</div>
-		</HelmorProfiler>
+		</KmorProfiler>
 	);
 });

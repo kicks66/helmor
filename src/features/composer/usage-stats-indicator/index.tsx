@@ -9,7 +9,7 @@ import {
 import {
 	claudeRateLimitsQueryOptions,
 	codexRateLimitsQueryOptions,
-	helmorQueryKeys,
+	kmorQueryKeys,
 } from "@/lib/query-client";
 import { useSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
@@ -55,9 +55,9 @@ export function UsageStatsIndicator({ agentType, disabled, className }: Props) {
 			if (!next || disabled) return;
 			const key =
 				agentType === "claude"
-					? helmorQueryKeys.claudeRateLimits
+					? kmorQueryKeys.claudeRateLimits
 					: agentType === "codex"
-						? helmorQueryKeys.codexRateLimits
+						? kmorQueryKeys.codexRateLimits
 						: null;
 			if (key) {
 				void queryClient.refetchQueries({ queryKey: key });

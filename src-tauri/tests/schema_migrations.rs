@@ -1,5 +1,5 @@
-use helmor_lib::schema;
 use insta::assert_yaml_snapshot;
+use kmor_lib::schema;
 
 fn repos_branch_prefix_columns(connection: &rusqlite::Connection) -> Vec<(String, String)> {
     let mut statement = connection

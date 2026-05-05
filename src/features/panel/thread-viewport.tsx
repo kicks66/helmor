@@ -12,10 +12,10 @@ import {
 	useState,
 } from "react";
 import { useStickToBottom } from "use-stick-to-bottom";
-import { HelmorLogoAnimated } from "@/components/helmor-logo-animated";
+import { KmorLogoAnimated } from "@/components/kmor-logo-animated";
 import { Button } from "@/components/ui/button";
 import type { ThreadMessageLike } from "@/lib/api";
-import { HelmorProfiler } from "@/lib/dev-react-profiler";
+import { KmorProfiler } from "@/lib/dev-react-profiler";
 import { estimateThreadRowHeights } from "@/lib/message-layout-estimator";
 import { measureSync } from "@/lib/perf-marks";
 import { hasUnresolvedPlanReview } from "@/lib/plan-review";
@@ -230,7 +230,7 @@ function ChatThread({
 	);
 
 	return (
-		<HelmorProfiler id="ChatThread">
+		<KmorProfiler id="ChatThread">
 			<ConversationViewport
 				contentRef={contentRef}
 				data={threadMessages}
@@ -262,7 +262,7 @@ function ChatThread({
 					<ArrowDown className="size-4" strokeWidth={2} />
 				</Button>
 			</ConversationViewport>
-		</HelmorProfiler>
+		</KmorProfiler>
 	);
 }
 
@@ -1107,7 +1107,7 @@ function StreamingFooter({ startTime }: { startTime: number }) {
 			data-testid="streaming-footer"
 			className="flex items-center gap-1.5 px-5 py-3 text-[12px] tabular-nums text-muted-foreground"
 		>
-			<HelmorLogoAnimated size={14} className="opacity-80" />
+			<KmorLogoAnimated size={14} className="opacity-80" />
 			{display}
 		</div>
 	);

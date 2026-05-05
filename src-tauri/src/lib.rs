@@ -98,7 +98,7 @@ pub fn run() {
             tracing::info!(
                 mode = data_dir::data_mode_label(),
                 data = %db_path.display(),
-                "Helmor started"
+                "Kmor started"
             );
 
             // Reconcile workspaces whose directory was deleted outside the
@@ -202,9 +202,9 @@ pub fn run() {
             commands::system_commands::get_cli_status,
             commands::system_commands::get_data_info,
             commands::system_commands::get_agent_login_status,
-            commands::system_commands::get_helmor_skills_status,
+            commands::system_commands::get_kmor_skills_status,
             commands::system_commands::install_cli,
-            commands::system_commands::install_helmor_skills,
+            commands::system_commands::install_kmor_skills,
             commands::system_commands::enter_onboarding_window_mode,
             commands::system_commands::exit_onboarding_window_mode,
             commands::system_commands::open_agent_login_terminal,
@@ -324,7 +324,7 @@ pub fn run() {
         .expect("error while building tauri application");
 
     // Every user-initiated app-exit path is intercepted here and routed
-    // through a single `helmor://quit-requested` event. The frontend's
+    // through a single `kmor://quit-requested` event. The frontend's
     // QuitConfirmDialog listens for that event, checks for in-flight
     // tasks, and calls back into the `request_quit` IPC command — which
     // cleans up (stops git watchers, SIGTERM's the sidecar) and then
@@ -333,7 +333,7 @@ pub fn run() {
     //   Source                                  | Rust branch
     //   ----------------------------------------|-------------------------
     //   Red close button / Cmd+W (main window)  | WindowEvent::CloseRequested
-    //   Cmd+Q, app-menu Quit (macOS)            | on_menu_event helmor-quit
+    //   Cmd+Q, app-menu Quit (macOS)            | on_menu_event kmor-quit
     //   Dock Quit / system shutdown / SIGINT    | RunEvent::ExitRequested { code: None }
     //   Our own request_quit -> app.exit(0)     | ExitRequested { code: Some(_) }  (passthrough)
     //
@@ -383,7 +383,7 @@ pub fn run() {
 // back to a direct exit is safer than leaving the process hanging with
 // no UI and no way to quit.
 fn emit_quit_requested(app_handle: &tauri::AppHandle) {
-    if let Err(e) = app_handle.emit("helmor://quit-requested", ()) {
+    if let Err(e) = app_handle.emit("kmor://quit-requested", ()) {
         tracing::warn!(
             error = %e,
             "Failed to emit quit-requested event; exiting directly",
@@ -392,30 +392,28 @@ fn emit_quit_requested(app_handle: &tauri::AppHandle) {
     }
 }
 
-const HELMOR_QUIT_MENU_ID: &str = "helmor-quit";
-const HELMOR_CLOSE_CURRENT_SESSION_MENU_ID: &str = "helmor-close-current-session";
+const KMOR_QUIT_MENU_ID: &str = "kmor-quit";
+const KMOR_CLOSE_CURRENT_SESSION_MENU_ID: &str = "kmor-close-current-session";
 
 #[cfg(target_os = "macos")]
 fn install_macos_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
     use tauri::menu::{AboutMetadataBuilder, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 
-    let close_current_session_item = MenuItemBuilder::with_id(
-        HELMOR_CLOSE_CURRENT_SESSION_MENU_ID,
-        "Close Current Session",
-    )
-    .accelerator("Cmd+W")
-    .build(app)?;
+    let close_current_session_item =
+        MenuItemBuilder::with_id(KMOR_CLOSE_CURRENT_SESSION_MENU_ID, "Close Current Session")
+            .accelerator("Cmd+W")
+            .build(app)?;
 
-    let quit_item = MenuItemBuilder::with_id(HELMOR_QUIT_MENU_ID, "Quit Helmor")
+    let quit_item = MenuItemBuilder::with_id(KMOR_QUIT_MENU_ID, "Quit Kmor")
         .accelerator("Cmd+Q")
         .build(app)?;
 
     let about_metadata = AboutMetadataBuilder::new()
-        .name(Some("Helmor"))
+        .name(Some("Kmor"))
         .version(Some(env!("CARGO_PKG_VERSION")))
         .build();
 
-    let app_submenu = SubmenuBuilder::new(app, "Helmor")
+    let app_submenu = SubmenuBuilder::new(app, "Kmor")
         .about(Some(about_metadata))
         .separator()
         .services()
@@ -452,8 +450,8 @@ fn install_macos_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     let handle = app.clone();
     app.on_menu_event(move |_, event| match event.id().0.as_str() {
-        HELMOR_QUIT_MENU_ID => emit_quit_requested(&handle),
-        HELMOR_CLOSE_CURRENT_SESSION_MENU_ID => emit_close_current_session_requested(&handle),
+        KMOR_QUIT_MENU_ID => emit_quit_requested(&handle),
+        KMOR_CLOSE_CURRENT_SESSION_MENU_ID => emit_close_current_session_requested(&handle),
         _ => {}
     });
 
@@ -461,7 +459,7 @@ fn install_macos_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
 }
 
 fn emit_close_current_session_requested(app_handle: &tauri::AppHandle) {
-    if let Err(e) = app_handle.emit("helmor://close-current-session", ()) {
+    if let Err(e) = app_handle.emit("kmor://close-current-session", ()) {
         tracing::warn!(error = %e, "Failed to emit close-current-session event");
     }
 }

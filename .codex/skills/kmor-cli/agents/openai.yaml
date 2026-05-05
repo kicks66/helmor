@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kmor CLI"
+  short_description: "Use Kmor from the terminal."
+  default_prompt: "Use the Kmor CLI to inspect data, manage workspaces, send prompts, or run Kmor as an MCP server."

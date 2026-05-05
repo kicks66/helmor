@@ -450,7 +450,7 @@ mod tests {
             "opus-1m",
             "claude-opus-4-20250514",
             Some("provider-session-1".to_string()),
-            "/tmp/helmor",
+            "/tmp/kmor",
             Some("default".to_string()),
             &serde_json::json!({
                 "toolUseId": "tool-1",
@@ -472,7 +472,7 @@ mod tests {
           question: Pick one
         toolName: AskUserQuestion
         toolUseId: tool-1
-        working_directory: /tmp/helmor
+        working_directory: /tmp/kmor
         "#
         );
     }
@@ -487,7 +487,7 @@ mod tests {
             "gpt-5.4",
             "gpt-5.4",
             Some("provider-thread-1".to_string()),
-            "/tmp/helmor",
+            "/tmp/kmor",
             &serde_json::json!({
                 "userInputId": "user-input-1",
                 "questions": [
@@ -523,7 +523,7 @@ mod tests {
         serverName: Codex
         session_id: provider-thread-1
         url: ~
-        working_directory: /tmp/helmor
+        working_directory: /tmp/kmor
         "#
         );
     }
@@ -573,7 +573,7 @@ mod tests {
             "opus-1m",
             "claude-opus-4-20250514",
             Some("provider-session-1".to_string()),
-            "/tmp/helmor",
+            "/tmp/kmor",
             true,
         );
 
@@ -586,7 +586,7 @@ mod tests {
         provider: claude
         resolved_model: claude-opus-4-20250514
         session_id: provider-session-1
-        working_directory: /tmp/helmor
+        working_directory: /tmp/kmor
         "#
         );
     }
@@ -598,7 +598,7 @@ mod tests {
             "opus-1m",
             "claude-opus-4-20250514",
             Some("provider-session-1".to_string()),
-            "/tmp/helmor",
+            "/tmp/kmor",
             true,
             "user_requested".to_string(),
         );
@@ -613,7 +613,7 @@ mod tests {
         reason: user_requested
         resolved_model: claude-opus-4-20250514
         session_id: provider-session-1
-        working_directory: /tmp/helmor
+        working_directory: /tmp/kmor
         "#
         );
     }
@@ -625,7 +625,7 @@ mod tests {
             "opus-1m",
             "claude-opus-4-20250514",
             Some("provider-session-1".to_string()),
-            "/tmp/helmor",
+            "/tmp/kmor",
             &serde_json::json!({
                 "elicitationId": "elicitation-1",
                 "serverName": "design-server",
@@ -662,7 +662,7 @@ mod tests {
         serverName: design-server
         session_id: provider-session-1
         url: ~
-        working_directory: /tmp/helmor
+        working_directory: /tmp/kmor
         "#
         );
     }

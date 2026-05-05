@@ -1,5 +1,5 @@
-//! `helmor send` — send a prompt to an agent, stream output.
-//! Also hosts `helmor models list`.
+//! `kmor send` — send a prompt to an agent, stream output.
+//! Also hosts `kmor models list`.
 
 use std::io::{Read, Write};
 

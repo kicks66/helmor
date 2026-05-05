@@ -5,7 +5,7 @@ import type {
 	ForgeCliStatus,
 	ForgeDetection,
 } from "@/lib/api";
-import { helmorQueryKeys } from "@/lib/query-client";
+import { kmorQueryKeys } from "@/lib/query-client";
 import { renderWithProviders } from "@/test/render-with-providers";
 import { GitSectionHeader } from "./git-section-header";
 
@@ -27,7 +27,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
 });
 
 const changeRequest: ChangeRequestInfo = {
-	url: "https://gitlab.com/helmor/helmor/-/merge_requests/182",
+	url: "https://gitlab.com/kmor/kmor/-/merge_requests/182",
 	number: 182,
 	state: "OPEN",
 	title: "Add GitLab forge support",
@@ -38,9 +38,9 @@ function gitlabDetection(patch: Partial<ForgeDetection> = {}): ForgeDetection {
 	return {
 		provider: "gitlab",
 		host: "gitlab.com",
-		namespace: "helmor",
-		repo: "helmor",
-		remoteUrl: "git@gitlab.com:helmor/helmor.git",
+		namespace: "kmor",
+		repo: "kmor",
+		remoteUrl: "git@gitlab.com:kmor/kmor.git",
 		labels: {
 			providerName: "GitLab",
 			cliName: "glab",
@@ -66,9 +66,9 @@ function githubDetection(patch: Partial<ForgeDetection> = {}): ForgeDetection {
 	return {
 		provider: "github",
 		host: "github.com",
-		namespace: "helmor",
-		repo: "helmor",
-		remoteUrl: "git@github.com:helmor/helmor.git",
+		namespace: "kmor",
+		repo: "kmor",
+		remoteUrl: "git@github.com:kmor/kmor.git",
 		labels: {
 			providerName: "GitHub",
 			cliName: "gh",
@@ -228,16 +228,16 @@ describe("GitSectionHeader forge onboarding", () => {
 		// Hook fans out: forgeCliStatusAll + every workspaceForge entry,
 		// onReady adds the workspace-scoped change request + action status.
 		expect(invalidateQueries).toHaveBeenCalledWith({
-			queryKey: helmorQueryKeys.forgeCliStatusAll,
+			queryKey: kmorQueryKeys.forgeCliStatusAll,
 		});
 		expect(invalidateQueries).toHaveBeenCalledWith(
 			expect.objectContaining({ predicate: expect.any(Function) }),
 		);
 		expect(invalidateQueries).toHaveBeenCalledWith({
-			queryKey: helmorQueryKeys.workspaceChangeRequest("workspace-1"),
+			queryKey: kmorQueryKeys.workspaceChangeRequest("workspace-1"),
 		});
 		expect(invalidateQueries).toHaveBeenCalledWith({
-			queryKey: helmorQueryKeys.workspaceForgeActionStatus("workspace-1"),
+			queryKey: kmorQueryKeys.workspaceForgeActionStatus("workspace-1"),
 		});
 	});
 

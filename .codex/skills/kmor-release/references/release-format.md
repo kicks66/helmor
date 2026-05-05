@@ -1,6 +1,6 @@
-# Helmor Release Format
+# Kmor Release Format
 
-Use this reference when preparing a Helmor changeset or walking the user through release prep.
+Use this reference when preparing a Kmor changeset or walking the user through release prep.
 
 ## Normal Iteration Flow
 

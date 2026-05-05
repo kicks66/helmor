@@ -24,7 +24,7 @@ import {
 	listConductorRepos,
 	listConductorWorkspaces,
 } from "@/lib/api";
-import { helmorQueryKeys } from "@/lib/query-client";
+import { kmorQueryKeys } from "@/lib/query-client";
 import { cn } from "@/lib/utils";
 import { SettingsGroup, SettingsRow } from "../components/settings-row";
 
@@ -253,13 +253,13 @@ export function ConductorImportPanel() {
 
 	const invalidateAfterImport = useCallback(() => {
 		void queryClient.invalidateQueries({
-			queryKey: helmorQueryKeys.workspaceGroups,
+			queryKey: kmorQueryKeys.workspaceGroups,
 		});
 		void queryClient.invalidateQueries({
-			queryKey: helmorQueryKeys.archivedWorkspaces,
+			queryKey: kmorQueryKeys.archivedWorkspaces,
 		});
 		void queryClient.invalidateQueries({
-			queryKey: helmorQueryKeys.repositories,
+			queryKey: kmorQueryKeys.repositories,
 		});
 	}, [queryClient]);
 

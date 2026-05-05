@@ -92,8 +92,8 @@ export function useWorkspaceInspectorSidebar({
 				startScript(repoId, "run", workspaceId);
 			}
 		};
-		window.addEventListener("helmor:run-script", handler);
-		return () => window.removeEventListener("helmor:run-script", handler);
+		window.addEventListener("kmor:run-script", handler);
+		return () => window.removeEventListener("kmor:run-script", handler);
 	}, [repoId, workspaceId, repoScripts]);
 
 	const isResizing = resizeState !== null;

@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="src/assets/readme-banner.png" alt="Helmor" width="100%" />
+  <img src="src/assets/readme-banner.png" alt="Kmor" width="100%" />
 </p>
 
-<h1 align="center">Helmor</h1>
+<h1 align="center">Kmor</h1>
 
 <p align="center">
-  Helmor is an open-source local workbench for multi-agent software development.
+  Kmor is an open-source local workbench for multi-agent software development.
 </p>
 
 > AI made coding faster.
 >
-> Helmor is about finishing the rest of the loop.
+> Kmor is about finishing the rest of the loop.
 >
 > Not just generating more code.
 >
@@ -19,16 +19,16 @@
 ## Install
 
 <p align="center">
-  <img src="src/assets/helmor-screenshot-mix.png" alt="Helmor screenshot" width="100%" />
+  <img src="src/assets/kmor-screenshot-mix.png" alt="Kmor screenshot" width="100%" />
 </p>
 
-[**Download for macOS** →](https://github.com/dohooo/helmor/releases)
+[**Download for macOS** →](https://github.com/dohooo/kmor/releases)
 
 ## Contributing
 
-Open Helmor, Import Helmor, Ask Helmor:
+Open Kmor, Import Kmor, Ask Kmor:
 
-> _"How do I contribute to Helmor?"_
+> _"How do I contribute to Kmor?"_
 
 That's the guide.
 

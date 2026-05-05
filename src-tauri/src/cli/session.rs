@@ -1,4 +1,4 @@
-//! `helmor session` — session CRUD and thread messages.
+//! `kmor session` — session CRUD and thread messages.
 
 use anyhow::Result;
 use rusqlite::params;

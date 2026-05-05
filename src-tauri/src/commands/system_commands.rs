@@ -19,8 +19,8 @@ use super::common::{run_blocking, CmdResult};
 // Resizing is restored when onboarding exits.
 const ONBOARDING_WINDOW_WIDTH: f64 = 1300.0;
 const ONBOARDING_WINDOW_HEIGHT: f64 = 810.0;
-const HELMOR_SKILL_NAME: &str = "helmor-cli";
-const HELMOR_SKILL_SOURCE: &str = "dohooo/helmor/.codex/skills/helmor-cli";
+const KMOR_SKILL_NAME: &str = "kmor-cli";
+const KMOR_SKILL_SOURCE: &str = "dohooo/kmor/.codex/skills/kmor-cli";
 
 static ONBOARDING_WINDOW_STATE: LazyLock<Mutex<HashMap<String, bool>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -59,29 +59,29 @@ pub struct CliStatus {
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct HelmorSkillsStatus {
+pub struct KmorSkillsStatus {
     pub installed: bool,
     pub claude: bool,
     pub codex: bool,
     pub command: String,
 }
 
-/// Where Helmor installs its managed CLI entrypoint on macOS.
+/// Where Kmor installs its managed CLI entrypoint on macOS.
 fn cli_install_target() -> std::path::PathBuf {
     std::path::PathBuf::from(format!("/usr/local/bin/{}", installed_cli_name()))
 }
 
 fn installed_cli_name() -> &'static str {
     if crate::data_dir::is_dev() {
-        "helmor-dev"
+        "kmor-dev"
     } else {
-        "helmor"
+        "kmor"
     }
 }
 
-/// Name of the compiled CLI binary produced by `cargo build --bin helmor-cli`.
+/// Name of the compiled CLI binary produced by `cargo build --bin kmor-cli`.
 fn cli_source_binary_name() -> &'static str {
-    "helmor-cli"
+    "kmor-cli"
 }
 
 fn bundled_cli_binary(app_exe: &std::path::Path) -> anyhow::Result<std::path::PathBuf> {
@@ -165,7 +165,7 @@ fn install_cli_symlink(
 ) -> anyhow::Result<()> {
     if !bundled_cli.is_file() {
         anyhow::bail!(
-            "CLI binary not found at {}. Run `cargo build --bin helmor-cli` first.",
+            "CLI binary not found at {}. Run `cargo build --bin kmor-cli` first.",
             bundled_cli.display()
         );
     }
@@ -184,7 +184,7 @@ fn install_cli_symlink(
         Ok(()) => return Ok(()),
         Err(error) if is_permission_denied(&error) => {
             tracing::info!(
-                target: "helmor_lib::commands::system_commands",
+                target: "kmor_lib::commands::system_commands",
                 "Direct CLI install hit permission denied; requesting authorization."
             );
         }
@@ -301,7 +301,7 @@ fn build_elevated_install_script(
         target = applescript_shell_arg(install_path),
     );
     format!(
-        "do shell script \"{inner}\" with prompt \"Helmor wants to install the {name} command line tool to {display}.\" with administrator privileges",
+        "do shell script \"{inner}\" with prompt \"Kmor wants to install the {name} command line tool to {display}.\" with administrator privileges",
         name = installed_cli_name(),
         display = install_path.display(),
     )
@@ -337,7 +337,7 @@ fn codex_skills_dir() -> PathBuf {
 }
 
 fn skill_exists(base: &Path) -> bool {
-    base.join(HELMOR_SKILL_NAME).join("SKILL.md").is_file()
+    base.join(KMOR_SKILL_NAME).join("SKILL.md").is_file()
 }
 
 fn ready_skill_agents(login: &AgentLoginStatus) -> Vec<&'static str> {
@@ -351,15 +351,15 @@ fn ready_skill_agents(login: &AgentLoginStatus) -> Vec<&'static str> {
     agents
 }
 
-fn helmor_skills_install_args(agents: &[&str]) -> Vec<String> {
+fn kmor_skills_install_args(agents: &[&str]) -> Vec<String> {
     let mut args = vec![
         "--yes".to_string(),
         "skills".to_string(),
         "add".to_string(),
-        HELMOR_SKILL_SOURCE.to_string(),
+        KMOR_SKILL_SOURCE.to_string(),
         "-g".to_string(),
         "-s".to_string(),
-        HELMOR_SKILL_NAME.to_string(),
+        KMOR_SKILL_NAME.to_string(),
         "-y".to_string(),
         "--copy".to_string(),
     ];
@@ -370,21 +370,21 @@ fn helmor_skills_install_args(agents: &[&str]) -> Vec<String> {
     args
 }
 
-fn helmor_skills_install_command(agents: &[&str]) -> String {
+fn kmor_skills_install_command(agents: &[&str]) -> String {
     let command_agents = if agents.is_empty() {
         vec!["claude-code", "codex"]
     } else {
         agents.to_vec()
     };
     std::iter::once("npx".to_string())
-        .chain(helmor_skills_install_args(&command_agents))
+        .chain(kmor_skills_install_args(&command_agents))
         .map(|arg| shell_quote_arg(&arg))
         .collect::<Vec<_>>()
         .join(" ")
 }
 
-fn helmor_skills_status() -> anyhow::Result<HelmorSkillsStatus> {
-    Ok(helmor_skills_status_for_agents(&ready_skill_agents(
+fn kmor_skills_status() -> anyhow::Result<KmorSkillsStatus> {
+    Ok(kmor_skills_status_for_agents(&ready_skill_agents(
         &AgentLoginStatus {
             claude: claude_login_ready(),
             codex: codex_login_ready(),
@@ -392,7 +392,7 @@ fn helmor_skills_status() -> anyhow::Result<HelmorSkillsStatus> {
     )))
 }
 
-fn helmor_skills_status_for_agents(agents: &[&str]) -> HelmorSkillsStatus {
+fn kmor_skills_status_for_agents(agents: &[&str]) -> KmorSkillsStatus {
     let claude = skill_exists(&claude_skills_dir());
     let codex = skill_exists(&codex_skills_dir());
     let installed = if agents.is_empty() {
@@ -404,11 +404,11 @@ fn helmor_skills_status_for_agents(agents: &[&str]) -> HelmorSkillsStatus {
             _ => false,
         })
     };
-    HelmorSkillsStatus {
+    KmorSkillsStatus {
         installed,
         claude,
         codex,
-        command: helmor_skills_install_command(agents),
+        command: kmor_skills_install_command(agents),
     }
 }
 
@@ -433,19 +433,19 @@ pub async fn install_cli() -> CmdResult<CliStatus> {
 }
 
 #[tauri::command]
-pub async fn get_helmor_skills_status() -> CmdResult<HelmorSkillsStatus> {
-    run_blocking(helmor_skills_status).await
+pub async fn get_kmor_skills_status() -> CmdResult<KmorSkillsStatus> {
+    run_blocking(kmor_skills_status).await
 }
 
 #[tauri::command]
-pub async fn install_helmor_skills() -> CmdResult<HelmorSkillsStatus> {
+pub async fn install_kmor_skills() -> CmdResult<KmorSkillsStatus> {
     run_blocking(|| {
         let login = AgentLoginStatus {
             claude: claude_login_ready(),
             codex: codex_login_ready(),
         };
         let agents = ready_skill_agents(&login);
-        let command = helmor_skills_install_command(&agents);
+        let command = kmor_skills_install_command(&agents);
 
         if agents.is_empty() {
             anyhow::bail!(
@@ -455,7 +455,7 @@ pub async fn install_helmor_skills() -> CmdResult<HelmorSkillsStatus> {
         }
 
         let output = Command::new("npx")
-            .args(helmor_skills_install_args(&agents))
+            .args(kmor_skills_install_args(&agents))
             .output()
             .with_context(|| format!("Failed to start skills installer. Try:\n  {command}"))?;
 
@@ -463,14 +463,14 @@ pub async fn install_helmor_skills() -> CmdResult<HelmorSkillsStatus> {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
             anyhow::bail!(
-                "Helmor skills setup failed.\n{}\n{}\nFix the error, then run:\n  {}",
+                "Kmor skills setup failed.\n{}\n{}\nFix the error, then run:\n  {}",
                 stdout.trim(),
                 stderr.trim(),
                 command
             );
         }
 
-        Ok(helmor_skills_status_for_agents(&agents))
+        Ok(kmor_skills_status_for_agents(&agents))
     })
     .await
 }
@@ -643,7 +643,7 @@ fn agent_login_script_type(provider: &str, instance_id: &str) -> String {
     format!("agent-login:{provider}:{instance_id}")
 }
 
-const AGENT_LOGIN_REPO_ID: &str = "__helmor_onboarding__";
+const AGENT_LOGIN_REPO_ID: &str = "__kmor_onboarding__";
 
 #[tauri::command]
 pub async fn spawn_agent_login_terminal(
@@ -1089,11 +1089,11 @@ mod tests {
     #[test]
     fn classify_cli_install_reports_missing_when_path_absent() {
         let tmp = tempdir().unwrap();
-        let bundled_cli = tmp.path().join("Helmor.app/Contents/MacOS/helmor-cli");
+        let bundled_cli = tmp.path().join("Kmor.app/Contents/MacOS/kmor-cli");
         fs::create_dir_all(bundled_cli.parent().unwrap()).unwrap();
         fs::write(&bundled_cli, "#!/bin/sh\n").unwrap();
 
-        let install_path = tmp.path().join("usr/local/bin/helmor");
+        let install_path = tmp.path().join("usr/local/bin/kmor");
         assert_eq!(
             classify_cli_install(&install_path, &bundled_cli),
             CliInstallState::Missing
@@ -1103,8 +1103,8 @@ mod tests {
     #[test]
     fn classify_cli_install_reports_managed_for_matching_symlink() {
         let tmp = tempdir().unwrap();
-        let bundled_cli = tmp.path().join("Helmor.app/Contents/MacOS/helmor-cli");
-        let install_path = tmp.path().join("usr/local/bin/helmor");
+        let bundled_cli = tmp.path().join("Kmor.app/Contents/MacOS/kmor-cli");
+        let install_path = tmp.path().join("usr/local/bin/kmor");
         fs::create_dir_all(bundled_cli.parent().unwrap()).unwrap();
         fs::create_dir_all(install_path.parent().unwrap()).unwrap();
         fs::write(&bundled_cli, "#!/bin/sh\n").unwrap();
@@ -1119,8 +1119,8 @@ mod tests {
     #[test]
     fn classify_cli_install_reports_stale_for_regular_file_copy() {
         let tmp = tempdir().unwrap();
-        let bundled_cli = tmp.path().join("Helmor.app/Contents/MacOS/helmor-cli");
-        let install_path = tmp.path().join("usr/local/bin/helmor");
+        let bundled_cli = tmp.path().join("Kmor.app/Contents/MacOS/kmor-cli");
+        let install_path = tmp.path().join("usr/local/bin/kmor");
         fs::create_dir_all(bundled_cli.parent().unwrap()).unwrap();
         fs::create_dir_all(install_path.parent().unwrap()).unwrap();
         fs::write(&bundled_cli, "#!/bin/sh\n").unwrap();
@@ -1135,8 +1135,8 @@ mod tests {
     #[test]
     fn install_cli_symlink_replaces_stale_copy_with_managed_symlink() {
         let tmp = tempdir().unwrap();
-        let bundled_cli = tmp.path().join("Helmor.app/Contents/MacOS/helmor-cli");
-        let install_path = tmp.path().join("usr/local/bin/helmor");
+        let bundled_cli = tmp.path().join("Kmor.app/Contents/MacOS/kmor-cli");
+        let install_path = tmp.path().join("usr/local/bin/kmor");
         fs::create_dir_all(bundled_cli.parent().unwrap()).unwrap();
         fs::create_dir_all(install_path.parent().unwrap()).unwrap();
         fs::write(&bundled_cli, "#!/bin/sh\n").unwrap();
@@ -1153,21 +1153,21 @@ mod tests {
     #[test]
     fn cli_install_remediation_uses_force_replace_symlink_command() {
         let command = cli_install_remediation(
-            std::path::Path::new("/Applications/Helmor.app/Contents/MacOS/helmor-cli"),
-            std::path::Path::new("/usr/local/bin/helmor-dev"),
+            std::path::Path::new("/Applications/Kmor.app/Contents/MacOS/kmor-cli"),
+            std::path::Path::new("/usr/local/bin/kmor-dev"),
         );
 
         assert_eq!(
             command,
-            "sudo ln -sfn '/Applications/Helmor.app/Contents/MacOS/helmor-cli' '/usr/local/bin/helmor-dev'"
+            "sudo ln -sfn '/Applications/Kmor.app/Contents/MacOS/kmor-cli' '/usr/local/bin/kmor-dev'"
         );
     }
 
     #[test]
     fn applescript_shell_arg_quotes_plain_path() {
         assert_eq!(
-            applescript_shell_arg(std::path::Path::new("/usr/local/bin/helmor")),
-            "'/usr/local/bin/helmor'"
+            applescript_shell_arg(std::path::Path::new("/usr/local/bin/kmor")),
+            "'/usr/local/bin/kmor'"
         );
     }
 
@@ -1192,15 +1192,14 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn build_elevated_install_script_produces_expected_osascript_payload() {
-        let bundled_cli =
-            std::path::Path::new("/Applications/Helmor.app/Contents/MacOS/helmor-cli");
-        let install_path = std::path::Path::new("/usr/local/bin/helmor");
+        let bundled_cli = std::path::Path::new("/Applications/Kmor.app/Contents/MacOS/kmor-cli");
+        let install_path = std::path::Path::new("/usr/local/bin/kmor");
 
         let script = build_elevated_install_script(bundled_cli, install_path);
 
         let expected_inner = "/bin/mkdir -p '/usr/local/bin' && /bin/ln -sfn \
-                              '/Applications/Helmor.app/Contents/MacOS/helmor-cli' \
-                              '/usr/local/bin/helmor'";
+                              '/Applications/Kmor.app/Contents/MacOS/kmor-cli' \
+                              '/usr/local/bin/kmor'";
         assert!(
             script.contains(expected_inner),
             "script missing expected shell command: {script}"

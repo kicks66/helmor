@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import type { ForgeDetection } from "@/lib/api";
 import { FORGE_AUTH_TOOLTIP_LINES } from "@/lib/forge-auth-copy";
-import { helmorQueryKeys } from "@/lib/query-client";
+import { kmorQueryKeys } from "@/lib/query-client";
 import { useForgeCliConnect } from "@/lib/use-forge-cli-connect";
 
 export function ForgeCliTrigger({
@@ -32,10 +32,10 @@ export function ForgeCliTrigger({
 		if (!workspaceId) return;
 		await Promise.all([
 			queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceChangeRequest(workspaceId),
+				queryKey: kmorQueryKeys.workspaceChangeRequest(workspaceId),
 			}),
 			queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceForgeActionStatus(workspaceId),
+				queryKey: kmorQueryKeys.workspaceForgeActionStatus(workspaceId),
 			}),
 		]);
 	}, [queryClient, workspaceId]);

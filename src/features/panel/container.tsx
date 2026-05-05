@@ -12,7 +12,7 @@ import type {
 } from "@/lib/api";
 import { createSession, loadRepoScripts } from "@/lib/api";
 import {
-	helmorQueryKeys,
+	kmorQueryKeys,
 	sessionThreadMessagesQueryOptions,
 	workspaceDetailQueryOptions,
 	workspaceSessionsQueryOptions,
@@ -149,7 +149,7 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 
 				const now = new Date().toISOString();
 				queryClient.setQueryData(
-					helmorQueryKeys.workspaceDetail(displayedWorkspaceId),
+					kmorQueryKeys.workspaceDetail(displayedWorkspaceId),
 					(current: WorkspaceDetail | null | undefined) => {
 						if (!current) {
 							return current;
@@ -166,7 +166,7 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 					},
 				);
 				queryClient.setQueryData(
-					helmorQueryKeys.workspaceSessions(displayedWorkspaceId),
+					kmorQueryKeys.workspaceSessions(displayedWorkspaceId),
 					(current: WorkspaceSessionSummary[] | undefined) => {
 						if ((current ?? []).some((session) => session.id === sessionId)) {
 							return current;
@@ -197,16 +197,16 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 					},
 				);
 				queryClient.setQueryData(
-					[...helmorQueryKeys.sessionMessages(sessionId), "thread"],
+					[...kmorQueryKeys.sessionMessages(sessionId), "thread"],
 					[],
 				);
 
 				await Promise.all([
 					queryClient.invalidateQueries({
-						queryKey: helmorQueryKeys.workspaceDetail(displayedWorkspaceId),
+						queryKey: kmorQueryKeys.workspaceDetail(displayedWorkspaceId),
 					}),
 					queryClient.invalidateQueries({
-						queryKey: helmorQueryKeys.workspaceSessions(displayedWorkspaceId),
+						queryKey: kmorQueryKeys.workspaceSessions(displayedWorkspaceId),
 					}),
 				]);
 			})
@@ -282,7 +282,7 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 		enabled: Boolean(threadSessionId),
 	});
 	const repoScriptsQuery = useQuery({
-		queryKey: helmorQueryKeys.repoScripts(
+		queryKey: kmorQueryKeys.repoScripts(
 			workspace?.repoId ?? "__none__",
 			displayedWorkspaceId,
 		),
@@ -295,7 +295,7 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 	const sessionDisplayProviders = useMemo<Record<string, AgentProvider>>(() => {
 		const modelSections =
 			queryClient.getQueryData<AgentModelSection[]>(
-				helmorQueryKeys.agentModelSections,
+				kmorQueryKeys.agentModelSections,
 			) ?? [];
 		return Object.fromEntries(
 			sessions
@@ -388,13 +388,13 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 
 		await Promise.all([
 			queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceDetail(displayedWorkspaceId),
+				queryKey: kmorQueryKeys.workspaceDetail(displayedWorkspaceId),
 			}),
 			queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceSessions(displayedWorkspaceId),
+				queryKey: kmorQueryKeys.workspaceSessions(displayedWorkspaceId),
 			}),
 			queryClient.invalidateQueries({
-				queryKey: helmorQueryKeys.workspaceGroups,
+				queryKey: kmorQueryKeys.workspaceGroups,
 			}),
 		]);
 	}, [displayedWorkspaceId, queryClient]);
@@ -407,10 +407,7 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 		await invalidateWorkspaceQueries();
 		if (threadSessionId) {
 			await queryClient.invalidateQueries({
-				queryKey: [
-					...helmorQueryKeys.sessionMessages(threadSessionId),
-					"thread",
-				],
+				queryKey: [...kmorQueryKeys.sessionMessages(threadSessionId), "thread"],
 			});
 		}
 	}, [
@@ -427,14 +424,14 @@ export const WorkspacePanelContainer = memo(function WorkspacePanelContainer({
 			}
 
 			queryClient.setQueryData(
-				helmorQueryKeys.workspaceSessions(displayedWorkspaceId),
+				kmorQueryKeys.workspaceSessions(displayedWorkspaceId),
 				(current: typeof sessions | undefined) =>
 					(current ?? []).map((session) =>
 						session.id === sessionId ? { ...session, title } : session,
 					),
 			);
 			queryClient.setQueryData(
-				helmorQueryKeys.workspaceDetail(displayedWorkspaceId),
+				kmorQueryKeys.workspaceDetail(displayedWorkspaceId),
 				(current: typeof workspace | undefined) => {
 					if (!current || current.activeSessionId !== sessionId) {
 						return current;

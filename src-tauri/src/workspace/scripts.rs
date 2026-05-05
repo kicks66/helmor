@@ -407,16 +407,16 @@ pub(crate) fn run_script_with_shell(
         .env("HISTFILE", "/dev/null")
         .env("SAVEHIST", "0")
         .env("HISTSIZE", "0")
-        .env("HELMOR_ROOT_PATH", &context.root_path);
+        .env("KMOR_ROOT_PATH", &context.root_path);
 
     if let Some(wp) = &context.workspace_path {
-        cmd.env("HELMOR_WORKSPACE_PATH", wp);
+        cmd.env("KMOR_WORKSPACE_PATH", wp);
     }
     if let Some(wn) = &context.workspace_name {
-        cmd.env("HELMOR_WORKSPACE_NAME", wn);
+        cmd.env("KMOR_WORKSPACE_NAME", wn);
     }
     if let Some(db) = &context.default_branch {
-        cmd.env("HELMOR_DEFAULT_BRANCH", db);
+        cmd.env("KMOR_DEFAULT_BRANCH", db);
     }
 
     // Set up the child's session and controlling terminal before exec.
@@ -515,7 +515,7 @@ pub(crate) fn run_script_with_shell(
     // directly in the Terminal tab, or the caller driving via `write_stdin`.
     if let Some(script) = script {
         let wrapped = format!(
-            "eval {}; __helmor_ec=$?; printf '\\r\\n\\033[2m[Completed with exit code %d]\\033[0m\\r\\n' $__helmor_ec; exit $__helmor_ec\n",
+            "eval {}; __kmor_ec=$?; printf '\\r\\n\\033[2m[Completed with exit code %d]\\033[0m\\r\\n' $__kmor_ec; exit $__kmor_ec\n",
             shell_escape(script),
         );
         let mut file = stdin.lock().expect("stdin mutex poisoned");

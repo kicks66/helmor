@@ -9,13 +9,13 @@ use crate::commands::system_commands::{CliInstallState, CliStatus, DataInfo};
 fn cli_status_serializes_camel_case() {
     let status = CliStatus {
         installed: true,
-        install_path: Some("/usr/local/bin/helmor-dev".into()),
+        install_path: Some("/usr/local/bin/kmor-dev".into()),
         build_mode: "development".into(),
         install_state: CliInstallState::Managed,
     };
     let value = serde_json::to_value(&status).unwrap();
     assert!(value.get("installed").is_some());
-    assert_eq!(value["installPath"], "/usr/local/bin/helmor-dev");
+    assert_eq!(value["installPath"], "/usr/local/bin/kmor-dev");
     assert_eq!(value["buildMode"], "development");
     assert_eq!(value["installState"], "managed");
     assert!(value.get("install_path").is_none());
@@ -39,12 +39,12 @@ fn cli_status_missing_install_path_is_null() {
 fn data_info_serializes_camel_case() {
     let info = DataInfo {
         data_mode: "development".into(),
-        data_dir: "/tmp/helmor".into(),
-        db_path: "/tmp/helmor/helmor.db".into(),
+        data_dir: "/tmp/kmor".into(),
+        db_path: "/tmp/kmor/kmor.db".into(),
     };
     let value = serde_json::to_value(&info).unwrap();
     assert_eq!(value["dataMode"], "development");
-    assert_eq!(value["dataDir"], "/tmp/helmor");
-    assert_eq!(value["dbPath"], "/tmp/helmor/helmor.db");
+    assert_eq!(value["dataDir"], "/tmp/kmor");
+    assert_eq!(value["dbPath"], "/tmp/kmor/kmor.db");
     assert!(value.get("data_mode").is_none());
 }

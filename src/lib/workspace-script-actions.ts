@@ -1,7 +1,7 @@
 export type WorkspaceScriptType = "setup" | "run" | "archive";
 
 export const WORKSPACE_SCRIPT_PROMPTS: Record<WorkspaceScriptType, string> = {
-	setup: `Please help me initialize the Helmor setup script for this workspace and write the final result into the current workspace's helmor.json.
+	setup: `Please help me initialize the Kmor setup script for this workspace and write the final result into the current workspace's kmor.json.
 
 Context:
 - This setup script runs automatically right after a new workspace is created.
@@ -11,28 +11,29 @@ Context:
 
 Rules:
 1. Inspect the repository first before asking questions.
-2. Your goal is to actually create or update scripts.setup in helmor.json, not just give advice.
+2. Your goal is to actually create or update scripts.setup in kmor.json, not just give advice.
 3. This is a worktree-based workspace. Use the environment variables correctly:
-   - HELMOR_ROOT_PATH: the original repository root, not this workspace worktree path.
-   - HELMOR_WORKSPACE_PATH: the current workspace's worktree path, and the directory where the script runs.
-   - HELMOR_WORKSPACE_NAME: the current workspace name.
-   - HELMOR_DEFAULT_BRANCH: the repository default branch.
-4. Migration from conductor.json:
-   - If helmor.json does not exist but conductor.json exists, copy conductor.json to helmor.json.
-   - Rename every CONDUCTOR_* environment variable reference in helmor.json to its Helmor equivalent. Cover both $VAR and \${VAR} forms. Do this whether helmor.json was just copied or an earlier incomplete migration left stale references:
-     - CONDUCTOR_WORKSPACE_NAME → HELMOR_WORKSPACE_NAME
-     - CONDUCTOR_WORKSPACE_PATH → HELMOR_WORKSPACE_PATH
-     - CONDUCTOR_ROOT_PATH → HELMOR_ROOT_PATH
-     - CONDUCTOR_DEFAULT_BRANCH → HELMOR_DEFAULT_BRANCH
-     - CONDUCTOR_PORT → HELMOR_PORT
-   - After this step, only work on helmor.json.
-5. If the migrated helmor.json already contains scripts.setup, stop and tell me the migration is complete.
+   - KMOR_ROOT_PATH: the original repository root, not this workspace worktree path.
+   - KMOR_WORKSPACE_PATH: the current workspace's worktree path, and the directory where the script runs.
+   - KMOR_WORKSPACE_NAME: the current workspace name.
+   - KMOR_DEFAULT_BRANCH: the repository default branch.
+4. Migration from helmor.json or conductor.json:
+   - If kmor.json does not exist but helmor.json exists, copy helmor.json to kmor.json.
+   - If kmor.json does not exist but conductor.json exists, copy conductor.json to kmor.json.
+   - Rename every CONDUCTOR_* environment variable reference in kmor.json to its Kmor equivalent. Cover both $VAR and \${VAR} forms. Do this whether kmor.json was just copied or an earlier incomplete migration left stale references:
+     - CONDUCTOR_WORKSPACE_NAME → KMOR_WORKSPACE_NAME
+     - CONDUCTOR_WORKSPACE_PATH → KMOR_WORKSPACE_PATH
+     - CONDUCTOR_ROOT_PATH → KMOR_ROOT_PATH
+     - CONDUCTOR_DEFAULT_BRANCH → KMOR_DEFAULT_BRANCH
+     - CONDUCTOR_PORT → KMOR_PORT
+   - After this step, only work on kmor.json.
+5. If the migrated kmor.json already contains scripts.setup, stop and tell me the migration is complete.
 6. Keep setup minimal and idempotent.
 7. Do not hardcode absolute local paths.
 8. Ask at most 3 rounds of questions, and only when they materially change the script design.
 
 What to inspect:
-- helmor.json, conductor.json
+- kmor.json, helmor.json, conductor.json
 - README and developer docs
 - package.json, lockfiles, workspace config, Cargo.toml, pyproject.toml, go.mod, Gemfile
 - Makefile, justfile
@@ -40,7 +41,7 @@ What to inspect:
 - .gitignore
 - git status --short --ignored
 
-Pay special attention to ignored or untracked local files that a fresh worktree may be missing. If some of them are likely required, identify them clearly before deciding whether setup should copy them from HELMOR_ROOT_PATH into HELMOR_WORKSPACE_PATH.
+Pay special attention to ignored or untracked local files that a fresh worktree may be missing. If some of them are likely required, identify them clearly before deciding whether setup should copy them from KMOR_ROOT_PATH into KMOR_WORKSPACE_PATH.
 
 Your flow:
 1. Inspect silently first.
@@ -50,13 +51,13 @@ Your flow:
    - why
    - which local files look like likely migration candidates
 3. Only ask concise blocking questions if needed.
-4. Then create or update helmor.json.
+4. Then create or update kmor.json.
 5. End with a short summary:
    - which file you changed
    - the final scripts.setup
    - any local files that still need confirmation
    - your key assumptions`,
-	run: `Please help me initialize the Helmor run script for this workspace and write the final result into the current workspace's helmor.json.
+	run: `Please help me initialize the Kmor run script for this workspace and write the final result into the current workspace's kmor.json.
 
 Context:
 - This run script executes when I press Cmd+R.
@@ -65,28 +66,29 @@ Context:
 
 Rules:
 1. Inspect the repository first before asking questions.
-2. Your goal is to actually create or update scripts.run in helmor.json, not just give advice.
+2. Your goal is to actually create or update scripts.run in kmor.json, not just give advice.
 3. This is a worktree-based workspace. Use the environment variables correctly:
-   - HELMOR_ROOT_PATH: the original repository root.
-   - HELMOR_WORKSPACE_PATH: the current workspace's worktree path, and the directory where the script runs.
-   - HELMOR_WORKSPACE_NAME: the current workspace name.
-   - HELMOR_DEFAULT_BRANCH: the repository default branch.
-4. Migration from conductor.json:
-   - If helmor.json does not exist but conductor.json exists, copy conductor.json to helmor.json.
-   - Rename every CONDUCTOR_* environment variable reference in helmor.json to its Helmor equivalent. Cover both $VAR and \${VAR} forms. Do this whether helmor.json was just copied or an earlier incomplete migration left stale references:
-     - CONDUCTOR_WORKSPACE_NAME → HELMOR_WORKSPACE_NAME
-     - CONDUCTOR_WORKSPACE_PATH → HELMOR_WORKSPACE_PATH
-     - CONDUCTOR_ROOT_PATH → HELMOR_ROOT_PATH
-     - CONDUCTOR_DEFAULT_BRANCH → HELMOR_DEFAULT_BRANCH
-     - CONDUCTOR_PORT → HELMOR_PORT
-   - After this step, only work on helmor.json.
-5. If the migrated helmor.json already contains scripts.run, stop and tell me the migration is complete.
+   - KMOR_ROOT_PATH: the original repository root.
+   - KMOR_WORKSPACE_PATH: the current workspace's worktree path, and the directory where the script runs.
+   - KMOR_WORKSPACE_NAME: the current workspace name.
+   - KMOR_DEFAULT_BRANCH: the repository default branch.
+4. Migration from helmor.json or conductor.json:
+   - If kmor.json does not exist but helmor.json exists, copy helmor.json to kmor.json.
+   - If kmor.json does not exist but conductor.json exists, copy conductor.json to kmor.json.
+   - Rename every CONDUCTOR_* environment variable reference in kmor.json to its Kmor equivalent. Cover both $VAR and \${VAR} forms. Do this whether kmor.json was just copied or an earlier incomplete migration left stale references:
+     - CONDUCTOR_WORKSPACE_NAME → KMOR_WORKSPACE_NAME
+     - CONDUCTOR_WORKSPACE_PATH → KMOR_WORKSPACE_PATH
+     - CONDUCTOR_ROOT_PATH → KMOR_ROOT_PATH
+     - CONDUCTOR_DEFAULT_BRANCH → KMOR_DEFAULT_BRANCH
+     - CONDUCTOR_PORT → KMOR_PORT
+   - After this step, only work on kmor.json.
+5. If the migrated kmor.json already contains scripts.run, stop and tell me the migration is complete.
 6. Do not overfit this run script to the current task, a single test file, or a one-off command.
 7. Do not quietly choose a heavy, destructive, or highly opinionated command when multiple reasonable defaults exist.
 8. Ask at most 3 rounds of questions, and only when they materially change the choice.
 
 What to inspect:
-- helmor.json, conductor.json
+- kmor.json, helmor.json, conductor.json
 - README and developer docs
 - package.json, workspace config, Cargo.toml
 - Makefile, justfile
@@ -102,13 +104,13 @@ Your flow:
    - why it could be a good Cmd+R default
 4. Give me your recommended default.
 5. Ask me to choose, ideally so I can answer with A / B / C.
-6. After I choose, create or update helmor.json.
+6. After I choose, create or update kmor.json.
 7. End with a short summary:
    - which file you changed
    - the final scripts.run
    - why it fits Cmd+R
    - how I can switch to another candidate later`,
-	archive: `Please help me initialize the Helmor archive script for this workspace and write the final result into the current workspace's helmor.json.
+	archive: `Please help me initialize the Kmor archive script for this workspace and write the final result into the current workspace's kmor.json.
 
 Context:
 - This archive script runs when this workspace is archived.
@@ -117,28 +119,29 @@ Context:
 
 Rules:
 1. Inspect the repository and workspace context first before asking questions.
-2. Your goal is to actually create or update scripts.archive in helmor.json, not just give advice.
+2. Your goal is to actually create or update scripts.archive in kmor.json, not just give advice.
 3. This is a worktree-based workspace. Use the environment variables correctly:
-   - HELMOR_ROOT_PATH: the original repository root.
-   - HELMOR_WORKSPACE_PATH: the current workspace's worktree path, and the directory where the script runs.
-   - HELMOR_WORKSPACE_NAME: the current workspace name.
-   - HELMOR_DEFAULT_BRANCH: the repository default branch.
-4. Migration from conductor.json:
-   - If helmor.json does not exist but conductor.json exists, copy conductor.json to helmor.json.
-   - Rename every CONDUCTOR_* environment variable reference in helmor.json to its Helmor equivalent. Cover both $VAR and \${VAR} forms. Do this whether helmor.json was just copied or an earlier incomplete migration left stale references:
-     - CONDUCTOR_WORKSPACE_NAME → HELMOR_WORKSPACE_NAME
-     - CONDUCTOR_WORKSPACE_PATH → HELMOR_WORKSPACE_PATH
-     - CONDUCTOR_ROOT_PATH → HELMOR_ROOT_PATH
-     - CONDUCTOR_DEFAULT_BRANCH → HELMOR_DEFAULT_BRANCH
-     - CONDUCTOR_PORT → HELMOR_PORT
-   - After this step, only work on helmor.json.
-5. If the migrated helmor.json already contains scripts.archive, stop and tell me the migration is complete.
+   - KMOR_ROOT_PATH: the original repository root.
+   - KMOR_WORKSPACE_PATH: the current workspace's worktree path, and the directory where the script runs.
+   - KMOR_WORKSPACE_NAME: the current workspace name.
+   - KMOR_DEFAULT_BRANCH: the repository default branch.
+4. Migration from helmor.json or conductor.json:
+   - If kmor.json does not exist but helmor.json exists, copy helmor.json to kmor.json.
+   - If kmor.json does not exist but conductor.json exists, copy conductor.json to kmor.json.
+   - Rename every CONDUCTOR_* environment variable reference in kmor.json to its Kmor equivalent. Cover both $VAR and \${VAR} forms. Do this whether kmor.json was just copied or an earlier incomplete migration left stale references:
+     - CONDUCTOR_WORKSPACE_NAME → KMOR_WORKSPACE_NAME
+     - CONDUCTOR_WORKSPACE_PATH → KMOR_WORKSPACE_PATH
+     - CONDUCTOR_ROOT_PATH → KMOR_ROOT_PATH
+     - CONDUCTOR_DEFAULT_BRANCH → KMOR_DEFAULT_BRANCH
+     - CONDUCTOR_PORT → KMOR_PORT
+   - After this step, only work on kmor.json.
+5. If the migrated kmor.json already contains scripts.archive, stop and tell me the migration is complete.
 6. Default to conservative behavior.
 7. Ask at most 3 rounds of questions, and only when they materially change the script design.
 8. Without my explicit confirmation, do not write any destructive action such as deleting databases, volumes, caches, build outputs, secrets, logs, screenshots, files outside the workspace, remote resources, or broad rm -rf / git clean behavior.
 
 What to inspect:
-- helmor.json, conductor.json
+- kmor.json, helmor.json, conductor.json
 - README and developer docs
 - package.json, Cargo.toml
 - Makefile, justfile
@@ -156,7 +159,7 @@ Your flow:
    - which ones need confirmation
    - which ones are too risky to write by default
 3. Only ask concise blocking questions if needed.
-4. Then create or update helmor.json.
+4. Then create or update kmor.json.
 5. End with a short summary:
    - which file you changed
    - the final scripts.archive

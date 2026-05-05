@@ -1,7 +1,7 @@
 /**
  * SessionManager backed by the Codex App Server (JSON-RPC over stdin/stdout).
  *
- * Each Helmor session maps to one `codex app-server` child process.
+ * Each Kmor session maps to one `codex app-server` child process.
  * Events are stripped of their JSON-RPC envelope and forwarded as flat
  * JSON via `emitter.passthrough()`. All semantic normalization (camelCase,
  * delta accumulation) happens downstream in Rust.
@@ -34,17 +34,17 @@ import {
 	TITLE_GENERATION_TIMEOUT_MS,
 } from "./title.js";
 
-const CODEX_BIN_PATH = process.env.HELMOR_CODEX_BIN_PATH || "codex";
+const CODEX_BIN_PATH = process.env.KMOR_CODEX_BIN_PATH || "codex";
 
 /** How long after a "Reconnecting…" stderr line we keep emitting
  *  synthetic heartbeats while Codex owns its retry loop. */
 const RETRY_SUPPRESSION_MS = 30_000;
 const RETRY_NOTICE_DEDUPE_MS = 1_000;
 
-const HELMOR_CLIENT_INFO = {
+const KMOR_CLIENT_INFO = {
 	clientInfo: {
-		name: "helmor_desktop",
-		title: "Helmor Desktop",
+		name: "kmor_desktop",
+		title: "Kmor Desktop",
 		version: "0.1.0",
 	},
 	capabilities: { experimentalApi: true },
@@ -570,7 +570,7 @@ export class CodexAppServerManager implements SessionManager {
 		const timeout = setTimeout(() => server.kill(), timeoutMs);
 
 		try {
-			await server.sendRequest("initialize", HELMOR_CLIENT_INFO);
+			await server.sendRequest("initialize", KMOR_CLIENT_INFO);
 			server.writeNotification("initialized");
 
 			const threadResponse = await server.sendRequest<Record<string, unknown>>(
@@ -636,7 +636,7 @@ export class CodexAppServerManager implements SessionManager {
 		});
 
 		try {
-			await server.sendRequest("initialize", HELMOR_CLIENT_INFO);
+			await server.sendRequest("initialize", KMOR_CLIENT_INFO);
 			server.writeNotification("initialized");
 
 			// 20s — mirrors the Claude sidecar slash-command timeout so both
@@ -852,7 +852,7 @@ export class CodexAppServerManager implements SessionManager {
 			},
 		});
 
-		await server.sendRequest("initialize", HELMOR_CLIENT_INFO);
+		await server.sendRequest("initialize", KMOR_CLIENT_INFO);
 		server.writeNotification("initialized");
 
 		let threadId: string | null = null;
@@ -1045,7 +1045,7 @@ function parseSkillsResponse(result: unknown, cwd: string): SlashCommandInfo[] {
 }
 
 /**
- * Map Helmor's permissionMode to Codex's collaborationMode.
+ * Map Kmor's permissionMode to Codex's collaborationMode.
  * Returns undefined when no override is needed (i.e. default mode).
  */
 function toCodexCollaborationMode(
@@ -1077,7 +1077,7 @@ function toCodexCollaborationMode(
 }
 
 /**
- * Map Helmor's permissionMode to Codex's approvalPolicy.
+ * Map Kmor's permissionMode to Codex's approvalPolicy.
  * "never" = full auto (no approval popups).
  * Only override on non-plan modes — plan mode is read-only by design.
  */

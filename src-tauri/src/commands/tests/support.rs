@@ -10,9 +10,8 @@ struct TestDataDir {
 
 impl TestDataDir {
     fn new(name: &str) -> Self {
-        let root =
-            std::env::temp_dir().join(format!("helmor-test-{name}-{}", uuid::Uuid::new_v4()));
-        std::env::set_var("HELMOR_DATA_DIR", root.display().to_string());
+        let root = std::env::temp_dir().join(format!("kmor-test-{name}-{}", uuid::Uuid::new_v4()));
+        std::env::set_var("KMOR_DATA_DIR", root.display().to_string());
         crate::data_dir::ensure_directory_structure().unwrap();
         // Match production startup order: schema first, pools second.
         let schema_conn =
@@ -30,7 +29,7 @@ impl TestDataDir {
 
 impl Drop for TestDataDir {
     fn drop(&mut self) {
-        std::env::remove_var("HELMOR_DATA_DIR");
+        std::env::remove_var("KMOR_DATA_DIR");
         let _ = fs::remove_dir_all(&self.root);
     }
 }
@@ -346,9 +345,9 @@ impl CreateTestHarness {
                 "-c",
                 "commit.gpgsign=false",
                 "-c",
-                "user.name=Helmor",
+                "user.name=Kmor",
                 "-c",
-                "user.email=helmor@example.com",
+                "user.email=kmor@example.com",
                 "commit",
                 "-m",
                 &format!("add {}", files[0].0),
@@ -404,11 +403,8 @@ impl BranchSwitchTestHarness {
             None,
         )
         .unwrap();
-        run_in_repo(
-            &source_repo,
-            &["config", "user.email", "helmor@example.com"],
-        );
-        run_in_repo(&source_repo, &["config", "user.name", "Helmor"]);
+        run_in_repo(&source_repo, &["config", "user.email", "kmor@example.com"]);
+        run_in_repo(&source_repo, &["config", "user.name", "Kmor"]);
         run_in_repo(&source_repo, &["config", "commit.gpgsign", "false"]);
 
         let repo_name = "demo-repo".to_string();
@@ -539,9 +535,9 @@ fn init_create_git_repo(repo_root: &Path) {
             "-c",
             "commit.gpgsign=false",
             "-c",
-            "user.name=Helmor",
+            "user.name=Kmor",
             "-c",
-            "user.email=helmor@example.com",
+            "user.email=kmor@example.com",
             "commit",
             "-m",
             "initial",
@@ -579,9 +575,9 @@ fn init_git_repo(repo_root: &Path) {
             "-c",
             "commit.gpgsign=false",
             "-c",
-            "user.name=Helmor",
+            "user.name=Kmor",
             "-c",
-            "user.email=helmor@example.com",
+            "user.email=kmor@example.com",
             "commit",
             "-m",
             "initial",
@@ -613,9 +609,9 @@ fn init_git_repo(repo_root: &Path) {
             "-c",
             "commit.gpgsign=false",
             "-c",
-            "user.name=Helmor",
+            "user.name=Kmor",
             "-c",
-            "user.email=helmor@example.com",
+            "user.email=kmor@example.com",
             "commit",
             "-m",
             "archived snapshot",
@@ -747,8 +743,8 @@ fn create_ready_fixture_db(
 
 fn init_branch_switch_repo(repo: &Path) {
     git_ops::run_git(["init", "-b", "main", repo.to_str().unwrap()], None).unwrap();
-    run_in_repo(repo, &["config", "user.email", "helmor@example.com"]);
-    run_in_repo(repo, &["config", "user.name", "Helmor"]);
+    run_in_repo(repo, &["config", "user.email", "kmor@example.com"]);
+    run_in_repo(repo, &["config", "user.name", "Kmor"]);
     run_in_repo(repo, &["config", "commit.gpgsign", "false"]);
     fs::write(repo.join("README.md"), "main initial").unwrap();
     run_in_repo(repo, &["add", "README.md"]);

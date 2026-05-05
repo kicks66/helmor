@@ -10,15 +10,15 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	getCliStatus,
-	getHelmorSkillsStatus,
+	getKmorSkillsStatus,
 	installCli,
-	installHelmorSkills,
+	installKmorSkills,
 } from "@/lib/api";
 import { SetupItem } from "../components/setup-item";
 import type { OnboardingStep } from "../types";
 
 const SETUP_FAILED_MESSAGE =
-	"Something went wrong — don't worry, Helmor will work fine without it.";
+	"Something went wrong — don't worry, Kmor will work fine without it.";
 
 export function SkillsStep({
 	step,
@@ -40,7 +40,7 @@ export function SkillsStep({
 
 	useEffect(() => {
 		let cancelled = false;
-		void Promise.all([getCliStatus(), getHelmorSkillsStatus()])
+		void Promise.all([getCliStatus(), getKmorSkillsStatus()])
 			.then(([cliStatus, skillsStatus]) => {
 				if (!cancelled) {
 					setCliInstalled(cliStatus.installState === "managed");
@@ -62,7 +62,7 @@ export function SkillsStep({
 		try {
 			const status = await installCli();
 			setCliInstalled(status.installState === "managed");
-			toast("Helmor CLI installed.");
+			toast("Kmor CLI installed.");
 		} catch {
 			setCliInstallFailed(true);
 		} finally {
@@ -77,9 +77,9 @@ export function SkillsStep({
 		setIsInstallingSkills(true);
 		setSkillsInstallFailed(false);
 		try {
-			const status = await installHelmorSkills();
+			const status = await installKmorSkills();
 			setSkillsInstalled(status.installed);
-			toast("Helmor skills installed.");
+			toast("Kmor skills installed.");
 		} catch {
 			setSkillsInstallFailed(true);
 		} finally {
@@ -131,17 +131,17 @@ export function SkillsStep({
 							<span className="size-2 rounded-full bg-muted-foreground/25" />
 							<span className="size-2 rounded-full bg-muted-foreground/20" />
 							<span className="ml-2 text-[10px] font-medium text-muted-foreground">
-								helmor --help
+								kmor --help
 							</span>
 						</div>
 						<div className="h-[calc(100%-2rem)] overflow-hidden px-4 py-3 font-mono text-[9.5px] leading-[13px] text-muted-foreground group-hover:overflow-y-auto">
 							<pre className="whitespace-pre-wrap break-words font-mono">
-								<span className="text-foreground">$ helmor --help</span>
+								<span className="text-foreground">$ kmor --help</span>
 								{`
-Remote-control Helmor from the terminal.
+Remote-control Kmor from the terminal.
 Works against the same SQLite database the desktop app uses.
 
-Usage: helmor [OPTIONS] <COMMAND>
+Usage: kmor [OPTIONS] <COMMAND>
 
 Commands:
   data         Data directory, database, and mode info
@@ -154,10 +154,10 @@ Commands:
   models       List available AI models
   github       GitHub integration - auth, PR lookup, merge
   scripts      Inspect repo-level setup/run/archive scripts
-  conductor    Migrate from Helmor v1 (Conductor)
+  conductor    Migrate from Kmor v1 (Conductor)
   completions  Shell completion scripts
-  cli-status   Report whether helmor is installed to PATH
-  quit         Ask a running Helmor app to quit
+  cli-status   Report whether kmor is installed to PATH
+  quit         Ask a running Kmor app to quit
   mcp          Run as an MCP server over stdio
   help         Print this message
 
@@ -174,19 +174,19 @@ Options:
 
 				<div className="w-full text-center">
 					<h2 className="text-3xl font-semibold tracking-normal text-foreground">
-						Power up Helmor
+						Power up Kmor
 					</h2>
 					<p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-						Install the CLI and skills so Helmor can split work, run agents,
-						call tools, and carry context across your workspaces.
+						Install the CLI and skills so Kmor can split work, run agents, call
+						tools, and carry context across your workspaces.
 					</p>
 				</div>
 
 				<div className="mt-7 grid w-full gap-3">
 					<SetupItem
 						icon={<Terminal className="size-5" />}
-						label="Helmor CLI"
-						description="Control Helmor from your terminal: create workspaces, send prompts, inspect files, and script repeatable flows."
+						label="Kmor CLI"
+						description="Control Kmor from your terminal: create workspaces, send prompts, inspect files, and script repeatable flows."
 						actionLabel={isInstallingCli ? "Installing" : "Set up"}
 						onAction={handleInstallCli}
 						busy={isInstallingCli}
@@ -195,8 +195,8 @@ Options:
 					/>
 					<SetupItem
 						icon={<PackageCheck className="size-5" />}
-						label="Helmor Skills (Beta)"
-						description="Install skills so Helmor can help with more workflows across every workspace."
+						label="Kmor Skills (Beta)"
+						description="Install skills so Kmor can help with more workflows across every workspace."
 						actionLabel={isInstallingSkills ? "Installing" : "Set up"}
 						onAction={handleInstallSkills}
 						busy={isInstallingSkills}

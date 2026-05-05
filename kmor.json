@@ -1,0 +1,6 @@
+{
+	"scripts": {
+		"setup": "cp \"$KMOR_ROOT_PATH/.env.local\" \"$KMOR_WORKSPACE_PATH/.env.local\"\ncp -r \"$KMOR_ROOT_PATH/sidecar/dist\" \"$KMOR_WORKSPACE_PATH/sidecar/dist\"\nbun install",
+		"run": "bun run dev:analyze"
+	}
+}
