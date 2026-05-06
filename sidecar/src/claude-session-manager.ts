@@ -220,6 +220,24 @@ function parseEffort(value: string | undefined): ClaudeEffort | undefined {
 	return undefined;
 }
 
+/**
+ * Build the SDK `systemPrompt` option from the wire params.
+ * - `"append"` (default): use the preset with appended instructions
+ * - `"replace"`: use the raw string as a full system prompt
+ * Returns an empty object when no override is requested so it can be spread.
+ */
+function buildSystemPromptOption(
+	systemPrompt: string | undefined,
+	systemPromptMode: "replace" | "append" | undefined,
+): { systemPrompt?: string | { type: "preset"; preset: "claude_code"; append: string } } {
+	if (!systemPrompt) return {};
+	if (systemPromptMode === "replace") {
+		return { systemPrompt };
+	}
+	// Default: append to the standard Claude Code prompt
+	return { systemPrompt: { type: "preset", preset: "claude_code", append: systemPrompt } };
+}
+
 type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
 function extToMediaType(filePath: string): ImageMediaType {
@@ -466,6 +484,7 @@ export class ClaudeSessionManager implements SessionManager {
 				effort: parseEffort(effortLevel),
 				thinking: { type: "adaptive", display: "summarized" },
 				...(effectiveFastMode ? { settings: { fastMode: true } } : {}),
+				...buildSystemPromptOption(params.systemPrompt, params.systemPromptMode),
 				hooks: {
 					PreToolUse: [
 						{

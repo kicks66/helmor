@@ -84,6 +84,9 @@ import { $appendComposerInsertItems } from "./editor-ops";
 import type { ElicitationResponseHandler } from "./elicitation";
 import { ElicitationPanel } from "./elicitation-panel";
 import { FastModeLottieIcon } from "./fast-mode-lottie-icon";
+import { RemoteControlToggle } from "./remote-control-toggle";
+import { SystemPromptPopover } from "./system-prompt-popover";
+import type { SystemPromptSelection } from "./system-prompt-presets";
 import { UsageStatsIndicator } from "./usage-stats-indicator";
 
 const OPEN_SETTINGS_EVENT = "kmor:open-settings";
@@ -160,6 +163,12 @@ type WorkspaceComposerProps = {
 	/** Hotkey that submits the current draft with the opposite follow-up
 	 *  behavior (queue ↔ steer) for one message. */
 	toggleFollowUpShortcut?: string | null;
+	/** System prompt selection (Claude-only). */
+	systemPrompt?: SystemPromptSelection;
+	onChangeSystemPrompt?: (value: SystemPromptSelection) => void;
+	/** Remote control toggle (Claude-only). */
+	remoteControlEnabled?: boolean;
+	onChangeRemoteControl?: (enabled: boolean) => void;
 };
 
 const EMPTY_SLASH_COMMANDS: readonly SlashCommandEntry[] = [];
@@ -235,6 +244,10 @@ export const WorkspaceComposer = memo(function WorkspaceComposer({
 	focusShortcut = null,
 	togglePlanShortcut = null,
 	toggleFollowUpShortcut = null,
+	systemPrompt,
+	onChangeSystemPrompt,
+	remoteControlEnabled = false,
+	onChangeRemoteControl,
 }: WorkspaceComposerProps) {
 	const instanceIdRef = useRef(
 		`composer-${Math.random().toString(36).slice(2, 10)}`,
@@ -881,6 +894,22 @@ export const WorkspaceComposer = memo(function WorkspaceComposer({
 										<ClipboardList className="size-[13px]" strokeWidth={1.8} />
 										<span>Plan</span>
 									</ComposerButton>
+									{_provider === "claude" && onChangeSystemPrompt && systemPrompt && (
+										<SystemPromptPopover
+											value={systemPrompt}
+											onChange={onChangeSystemPrompt}
+											disabled={toolbarDisabled}
+											className={composerToolbarTriggerClassName}
+										/>
+									)}
+									{_provider === "claude" && onChangeRemoteControl && (
+										<RemoteControlToggle
+											enabled={remoteControlEnabled}
+											onToggle={onChangeRemoteControl}
+											disabled={toolbarDisabled}
+											className={composerToolbarTriggerClassName}
+										/>
+									)}
 								</>
 							)}
 						</div>

@@ -117,6 +117,7 @@ export function parseProvider(value: unknown): Provider {
 export function parseSendMessageParams(
 	params: Record<string, unknown>,
 ): SendMessageParams {
+	const rawMode = optionalString(params, "systemPromptMode");
 	return {
 		sessionId: requireString(params, "sessionId"),
 		prompt: requireString(params, "prompt"),
@@ -131,6 +132,9 @@ export function parseSendMessageParams(
 			params,
 			"additionalDirectories",
 		),
+		systemPrompt: optionalString(params, "systemPrompt"),
+		systemPromptMode:
+			rawMode === "replace" || rawMode === "append" ? rawMode : undefined,
 	};
 }
 

@@ -11,6 +11,7 @@ import type {
 	DeferredToolResponseHandler,
 	DeferredToolResponseOptions,
 } from "@/features/composer/deferred-tool";
+import type { SystemPromptSelection } from "@/features/composer/system-prompt-presets";
 import { WorkspacePanelContainer } from "@/features/panel/container";
 import { FileLinkProvider } from "@/features/panel/message-components/file-link-context";
 import type { SessionCloseRequest } from "@/features/panel/use-confirm-session-close";
@@ -119,6 +120,11 @@ export const WorkspaceConversationContainer = memo(
 		const [composerFastModes, setComposerFastModes] = useState<
 			Record<string, boolean>
 		>({});
+		const [composerSystemPrompts, setComposerSystemPrompts] = useState<
+			Record<string, SystemPromptSelection>
+		>({});
+		const [composerRemoteControlModes, setComposerRemoteControlModes] =
+			useState<Record<string, boolean>>({});
 
 		const composerContextKey = getComposerContextKey(
 			displayedWorkspaceId,
@@ -239,6 +245,26 @@ export const WorkspaceConversationContainer = memo(
 			[],
 		);
 
+		const handleChangeSystemPrompt = useCallback(
+			(contextKey: string, value: SystemPromptSelection) => {
+				setComposerSystemPrompts((current) => ({
+					...current,
+					[contextKey]: value,
+				}));
+			},
+			[],
+		);
+
+		const handleChangeRemoteControl = useCallback(
+			(contextKey: string, enabled: boolean) => {
+				setComposerRemoteControlModes((current) => ({
+					...current,
+					[contextKey]: enabled,
+				}));
+			},
+			[],
+		);
+
 		const handleComposerSubmitWrapper = useCallback(
 			(payload: Parameters<typeof handleComposerSubmit>[0]) => {
 				void handleComposerSubmit(payload);
@@ -342,6 +368,10 @@ export const WorkspaceConversationContainer = memo(
 							onSelectEffort={handleSelectEffort}
 							onChangePermissionMode={handleChangePermissionMode}
 							onChangeFastMode={handleChangeFastMode}
+							systemPrompts={composerSystemPrompts}
+							remoteControlModes={composerRemoteControlModes}
+							onChangeSystemPrompt={handleChangeSystemPrompt}
+							onChangeRemoteControl={handleChangeRemoteControl}
 							onSwitchSession={onSelectSession}
 							onSubmit={handleComposerSubmitWrapper}
 							onStop={handleStopStream}

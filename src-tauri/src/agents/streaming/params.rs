@@ -21,6 +21,8 @@ pub struct BuildSendMessageParamsInput<'a> {
     pub kmor_session_id: Option<&'a str>,
     pub claude_base_url: Option<&'a str>,
     pub claude_auth_token: Option<&'a str>,
+    pub system_prompt: Option<&'a str>,
+    pub system_prompt_mode: Option<&'a str>,
 }
 
 /// Build the `sendMessage` request params that the sidecar receives.
@@ -59,6 +61,14 @@ pub fn build_send_message_params(input: BuildSendMessageParamsInput<'_>) -> Valu
                     "ANTHROPIC_AUTH_TOKEN": auth_token,
                 }),
             );
+        }
+    }
+    if let Some(sp) = input.system_prompt {
+        if let Some(obj) = params.as_object_mut() {
+            obj.insert("systemPrompt".to_string(), Value::String(sp.to_string()));
+            if let Some(mode) = input.system_prompt_mode {
+                obj.insert("systemPromptMode".to_string(), Value::String(mode.to_string()));
+            }
         }
     }
     params

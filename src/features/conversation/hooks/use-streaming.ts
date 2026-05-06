@@ -105,6 +105,9 @@ type SubmitPayload = {
 	effortLevel: string;
 	permissionMode: string;
 	fastMode: boolean;
+	systemPrompt?: string | null;
+	systemPromptMode?: "replace" | "append" | null;
+	remoteControl?: boolean;
 	/** When true, route to the follow-up queue instead of steering if a
 	 *  turn is already streaming — regardless of the user's
 	 *  `followUpBehavior` setting. Set by host-triggered submits (e.g.
@@ -1007,6 +1010,8 @@ export function useConversationStreaming({
 				effortLevel,
 				permissionMode,
 				fastMode,
+				systemPrompt,
+				systemPromptMode,
 				forceQueue,
 				followUpBehaviorOverride,
 			}: SubmitPayload,
@@ -1341,6 +1346,8 @@ export function useConversationStreaming({
 						fastMode,
 						userMessageId,
 						files: filePaths,
+						systemPrompt: systemPrompt ?? undefined,
+						systemPromptMode: systemPromptMode ?? undefined,
 					},
 					(event) => {
 						if (event.kind === "update") {

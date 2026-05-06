@@ -154,6 +154,10 @@ export type AgentSendRequest = {
 	userMessageId?: string | null;
 	/** Workspace-relative paths from the @-mention picker. */
 	files?: string[] | null;
+	/** Custom system prompt override (Claude-only). */
+	systemPrompt?: string | null;
+	/** How to apply the system prompt: "append" augments default, "replace" overrides it. */
+	systemPromptMode?: "replace" | "append" | null;
 };
 
 export type WorkspaceSummary = {

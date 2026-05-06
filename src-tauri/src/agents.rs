@@ -182,6 +182,12 @@ pub struct AgentSendRequest {
     /// Workspace-relative paths from the @-mention picker.
     #[serde(default)]
     pub files: Option<Vec<String>>,
+    /// Custom system prompt override for this session (Claude-only).
+    #[serde(default)]
+    pub system_prompt: Option<String>,
+    /// How to apply the system prompt: "append" (default) or "replace".
+    #[serde(default)]
+    pub system_prompt_mode: Option<String>,
 }
 
 #[cfg(test)]

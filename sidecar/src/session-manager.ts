@@ -27,6 +27,18 @@ export interface SendMessageParams {
 	 * arrays everywhere.
 	 */
 	readonly additionalDirectories?: readonly string[];
+	/**
+	 * Custom system prompt override. When set, passed to the SDK's
+	 * `systemPrompt` option. Interpretation depends on `systemPromptMode`.
+	 */
+	readonly systemPrompt?: string | undefined;
+	/**
+	 * How to apply `systemPrompt`:
+	 * - `"append"` (default): augment the default Claude Code system prompt
+	 *   via `{ type: 'preset', preset: 'claude_code', append: systemPrompt }`
+	 * - `"replace"`: use the string as a full system prompt replacement
+	 */
+	readonly systemPromptMode?: "replace" | "append" | undefined;
 }
 
 export interface ListSlashCommandsParams {

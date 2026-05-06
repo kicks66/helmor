@@ -53,6 +53,11 @@ import type { AddDirPickerEntry } from "./editor/add-dir/typeahead-plugin";
 import type { ElicitationResponseHandler } from "./elicitation";
 import { WorkspaceComposer } from "./index";
 import { SubmitQueueList } from "./submit-queue-list";
+import {
+	type SystemPromptSelection,
+	DEFAULT_SYSTEM_PROMPT_SELECTION,
+	resolveSystemPrompt,
+} from "./system-prompt-presets";
 
 const EMPTY_MODEL_SECTIONS: AgentModelSection[] = [];
 const EMPTY_SLASH_COMMANDS: SlashCommandEntry[] = [];
@@ -110,6 +115,10 @@ type WorkspaceComposerContainerProps = {
 	onChangePermissionMode: (contextKey: string, mode: string) => void;
 	onChangeFastMode: (contextKey: string, enabled: boolean) => void;
 	onSwitchSession?: (sessionId: string) => void;
+	systemPrompts?: Record<string, SystemPromptSelection>;
+	remoteControlModes?: Record<string, boolean>;
+	onChangeSystemPrompt?: (contextKey: string, value: SystemPromptSelection) => void;
+	onChangeRemoteControl?: (contextKey: string, enabled: boolean) => void;
 	onSubmit: (payload: {
 		prompt: string;
 		imagePaths: string[];
@@ -120,6 +129,9 @@ type WorkspaceComposerContainerProps = {
 		effortLevel: string;
 		permissionMode: string;
 		fastMode: boolean;
+		systemPrompt?: string | null;
+		systemPromptMode?: "replace" | "append" | null;
+		remoteControl?: boolean;
 		/** Force queue (bypass `followUpBehavior`) if a turn is streaming. */
 		forceQueue?: boolean;
 		/** When set, override the user's `followUpBehavior` setting for this
@@ -180,6 +192,10 @@ export const WorkspaceComposerContainer = memo(
 		onChangePermissionMode,
 		onChangeFastMode,
 		onSwitchSession,
+		systemPrompts: systemPromptsRaw = {},
+		remoteControlModes: remoteControlModesRaw = {},
+		onChangeSystemPrompt,
+		onChangeRemoteControl,
 		onSubmit,
 		pendingPromptForSession = null,
 		onPendingPromptConsumed,
@@ -569,6 +585,10 @@ export const WorkspaceComposerContainer = memo(
 			void slashCommandsQuery.refetch();
 		}, [slashCommandsQuery]);
 
+		const systemPromptSelection =
+			systemPromptsRaw[composerContextKey] ?? DEFAULT_SYSTEM_PROMPT_SELECTION;
+		const remoteControlEnabled = remoteControlModesRaw[composerContextKey] ?? false;
+
 		const handleComposerSubmit = useCallback(
 			(
 				prompt: string,
@@ -591,6 +611,7 @@ export const WorkspaceComposerContainer = memo(
 						? "steer"
 						: "queue"
 					: undefined;
+				const resolved = resolveSystemPrompt(systemPromptSelection);
 				onSubmit({
 					prompt,
 					imagePaths,
@@ -602,6 +623,9 @@ export const WorkspaceComposerContainer = memo(
 					permissionMode:
 						options?.permissionModeOverride ?? effectivePermissionMode,
 					fastMode: supportsFastMode ? fastMode : false,
+					systemPrompt: resolved?.content ?? null,
+					systemPromptMode: resolved?.mode ?? null,
+					remoteControl: remoteControlEnabled || undefined,
 					followUpBehaviorOverride,
 				});
 			},
@@ -614,6 +638,8 @@ export const WorkspaceComposerContainer = memo(
 				fastMode,
 				supportsFastMode,
 				settings.followUpBehavior,
+				systemPromptSelection,
+				remoteControlEnabled,
 			],
 		);
 
@@ -704,6 +730,20 @@ export const WorkspaceComposerContainer = memo(
 				onChangeFastMode(composerContextKey, enabled);
 			},
 			[onChangeFastMode, composerContextKey],
+		);
+
+		const handleChangeSystemPromptInner = useCallback(
+			(value: SystemPromptSelection) => {
+				onChangeSystemPrompt?.(composerContextKey, value);
+			},
+			[onChangeSystemPrompt, composerContextKey],
+		);
+
+		const handleChangeRemoteControlInner = useCallback(
+			(enabled: boolean) => {
+				onChangeRemoteControl?.(composerContextKey, enabled);
+			},
+			[onChangeRemoteControl, composerContextKey],
 		);
 
 		const autoCloseHelpText =
@@ -844,6 +884,10 @@ export const WorkspaceComposerContainer = memo(
 						linkedDirectoriesDisabled={linkedDirectoriesMutation.isPending}
 						addDirCandidates={candidateDirectories}
 						onPickAddDir={handlePickAddDir}
+						systemPrompt={systemPromptSelection}
+						onChangeSystemPrompt={handleChangeSystemPromptInner}
+						remoteControlEnabled={remoteControlEnabled}
+						onChangeRemoteControl={handleChangeRemoteControlInner}
 					/>
 				</div>
 			</div>

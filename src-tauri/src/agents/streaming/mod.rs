@@ -130,6 +130,8 @@ pub(super) fn stream_via_sidecar(
         kmor_session_id: request.kmor_session_id.as_deref(),
         claude_base_url: model.claude_base_url.as_deref(),
         claude_auth_token: model.claude_auth_token.as_deref(),
+        system_prompt: request.system_prompt.as_deref(),
+        system_prompt_mode: request.system_prompt_mode.as_deref(),
     });
 
     // Surface the `/add-dir` decision in logs — we often debug linked-
