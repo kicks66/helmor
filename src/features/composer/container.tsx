@@ -55,7 +55,6 @@ import { WorkspaceComposer } from "./index";
 import { SubmitQueueList } from "./submit-queue-list";
 import {
 	type SystemPromptSelection,
-	DEFAULT_SYSTEM_PROMPT_SELECTION,
 	resolveSystemPrompt,
 } from "./system-prompt-presets";
 
@@ -586,8 +585,13 @@ export const WorkspaceComposerContainer = memo(
 		}, [slashCommandsQuery]);
 
 		const systemPromptSelection =
-			systemPromptsRaw[composerContextKey] ?? DEFAULT_SYSTEM_PROMPT_SELECTION;
-		const remoteControlEnabled = remoteControlModesRaw[composerContextKey] ?? false;
+			systemPromptsRaw[composerContextKey] ?? {
+				preset: settings.defaultSystemPrompt,
+				customText: settings.defaultSystemPromptCustom,
+				mode: settings.defaultSystemPromptMode,
+			};
+		const remoteControlEnabled =
+			remoteControlModesRaw[composerContextKey] ?? settings.defaultRemoteControl;
 
 		const handleComposerSubmit = useCallback(
 			(

@@ -18,6 +18,9 @@ export type ClaudeCustomProviderSettings = {
 	customModels: string;
 };
 
+/** Default system prompt preset: "default" (none), "karpathy", or "custom". */
+export type DefaultSystemPromptPreset = "default" | "karpathy" | "custom";
+
 export type AppSettings = {
 	fontSize: number;
 	branchPrefixType: "github" | "custom" | "none";
@@ -40,6 +43,14 @@ export type AppSettings = {
 	onboardingCompleted: boolean;
 	shortcuts: ShortcutOverrides;
 	claudeCustomProviders: ClaudeCustomProviderSettings;
+	/** Default system prompt preset for new Claude sessions. */
+	defaultSystemPrompt: DefaultSystemPromptPreset;
+	/** Custom text used when `defaultSystemPrompt` is "custom". */
+	defaultSystemPromptCustom: string;
+	/** Default system prompt mode: "append" augments default, "replace" overrides. */
+	defaultSystemPromptMode: "append" | "replace";
+	/** Enable remote control by default for new Claude sessions. */
+	defaultRemoteControl: boolean;
 };
 
 /**
@@ -72,6 +83,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
 		customApiKey: "",
 		customModels: "",
 	},
+	defaultSystemPrompt: "default",
+	defaultSystemPromptCustom: "",
+	defaultSystemPromptMode: "append",
+	defaultRemoteControl: false,
 };
 
 export const THEME_STORAGE_KEY = "kmor-theme";
@@ -94,6 +109,10 @@ const SETTINGS_KEY_MAP: Record<Exclude<keyof AppSettings, "theme">, string> = {
 	onboardingCompleted: "app.onboarding_completed",
 	shortcuts: "app.shortcuts",
 	claudeCustomProviders: "app.claude_custom_providers",
+	defaultSystemPrompt: "app.default_system_prompt",
+	defaultSystemPromptCustom: "app.default_system_prompt_custom",
+	defaultSystemPromptMode: "app.default_system_prompt_mode",
+	defaultRemoteControl: "app.default_remote_control",
 };
 
 function parseShortcutOverrides(raw: string | undefined): ShortcutOverrides {
@@ -203,6 +222,25 @@ export async function loadSettings(): Promise<AppSettings> {
 			claudeCustomProviders: parseClaudeCustomProviderSettings(
 				raw[SETTINGS_KEY_MAP.claudeCustomProviders],
 			),
+			defaultSystemPrompt: (() => {
+				const v = raw[SETTINGS_KEY_MAP.defaultSystemPrompt];
+				return v === "karpathy" || v === "custom"
+					? v
+					: DEFAULT_SETTINGS.defaultSystemPrompt;
+			})(),
+			defaultSystemPromptCustom:
+				raw[SETTINGS_KEY_MAP.defaultSystemPromptCustom] ??
+				DEFAULT_SETTINGS.defaultSystemPromptCustom,
+			defaultSystemPromptMode: (() => {
+				const v = raw[SETTINGS_KEY_MAP.defaultSystemPromptMode];
+				return v === "replace" || v === "append"
+					? v
+					: DEFAULT_SETTINGS.defaultSystemPromptMode;
+			})(),
+			defaultRemoteControl:
+				raw[SETTINGS_KEY_MAP.defaultRemoteControl] !== undefined
+					? raw[SETTINGS_KEY_MAP.defaultRemoteControl] === "true"
+					: DEFAULT_SETTINGS.defaultRemoteControl,
 		};
 	} catch {
 		return { ...DEFAULT_SETTINGS };

@@ -549,6 +549,119 @@ export const SettingsDialog = memo(function SettingsDialog({
 											</div>
 										</div>
 									</SettingsRow>
+									<SettingsRow
+										title="Default system prompt"
+										description="System prompt preset for new Claude sessions"
+									>
+										<div className="flex w-[360px] flex-col gap-2">
+											<div className="flex items-center gap-2">
+												<DropdownMenu>
+													<DropdownMenuTrigger
+														className={cn(
+															"flex h-8 cursor-pointer items-center justify-between rounded-lg border border-border/50 bg-muted/30 px-3 text-[13px] text-foreground hover:bg-muted/50",
+															"min-w-0 flex-1 gap-1.5",
+														)}
+													>
+														<span>
+															{settings.defaultSystemPrompt === "karpathy"
+																? "Karpathy Guidelines"
+																: settings.defaultSystemPrompt === "custom"
+																	? "Custom"
+																	: "Default"}
+														</span>
+														<ChevronDown className="size-3 shrink-0 opacity-40" />
+													</DropdownMenuTrigger>
+													<DropdownMenuContent
+														align="end"
+														sideOffset={4}
+														className="min-w-[10rem]"
+													>
+														{(["default", "karpathy", "custom"] as const).map(
+															(preset) => (
+																<DropdownMenuItem
+																	key={preset}
+																	onClick={() =>
+																		updateSettings({
+																			defaultSystemPrompt: preset,
+																		})
+																	}
+																>
+																	{preset === "karpathy"
+																		? "Karpathy Guidelines"
+																		: preset === "custom"
+																			? "Custom"
+																			: "Default"}
+																</DropdownMenuItem>
+															),
+														)}
+													</DropdownMenuContent>
+												</DropdownMenu>
+												{settings.defaultSystemPrompt !== "default" && (
+													<DropdownMenu>
+														<DropdownMenuTrigger
+															className={cn(
+																"flex h-8 cursor-pointer items-center rounded-lg border border-border/50 bg-muted/30 px-3 text-[13px] text-foreground hover:bg-muted/50",
+																"shrink-0 gap-1.5",
+															)}
+														>
+															<span className="capitalize">
+																{settings.defaultSystemPromptMode}
+															</span>
+															<ChevronDown className="size-3 opacity-40" />
+														</DropdownMenuTrigger>
+														<DropdownMenuContent
+															align="end"
+															sideOffset={4}
+															className="min-w-[8rem]"
+														>
+															<DropdownMenuItem
+																onClick={() =>
+																	updateSettings({
+																		defaultSystemPromptMode: "append",
+																	})
+																}
+															>
+																Append
+															</DropdownMenuItem>
+															<DropdownMenuItem
+																onClick={() =>
+																	updateSettings({
+																		defaultSystemPromptMode: "replace",
+																	})
+																}
+															>
+																Replace
+															</DropdownMenuItem>
+														</DropdownMenuContent>
+													</DropdownMenu>
+												)}
+											</div>
+											{settings.defaultSystemPrompt === "custom" && (
+												<textarea
+													value={settings.defaultSystemPromptCustom}
+													onChange={(e) =>
+														updateSettings({
+															defaultSystemPromptCustom: e.target.value,
+														})
+													}
+													placeholder="Enter custom system prompt..."
+													className="min-h-[5rem] w-full resize-y rounded-md border bg-muted/30 px-2.5 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring"
+												/>
+											)}
+										</div>
+									</SettingsRow>
+									<SettingsRow
+										title="Remote control"
+										description="Enable remote control by default for new Claude sessions"
+									>
+										<Switch
+											checked={settings.defaultRemoteControl}
+											onCheckedChange={(checked) =>
+												updateSettings({ defaultRemoteControl: checked })
+											}
+											aria-label="Default remote control"
+										/>
+									</SettingsRow>
 									<ClaudeCustomProvidersPanel />
 								</SettingsGroup>
 							)}
