@@ -135,6 +135,7 @@ export function parseSendMessageParams(
 		systemPrompt: optionalString(params, "systemPrompt"),
 		systemPromptMode:
 			rawMode === "replace" || rawMode === "append" ? rawMode : undefined,
+		remoteControl: optionalBoolean(params, "remoteControl"),
 	};
 }
 

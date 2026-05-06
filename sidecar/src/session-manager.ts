@@ -39,6 +39,11 @@ export interface SendMessageParams {
 	 * - `"replace"`: use the string as a full system prompt replacement
 	 */
 	readonly systemPromptMode?: "replace" | "append" | undefined;
+	/**
+	 * When true, enable remote control on this session so it's accessible
+	 * from claude.ai/code or the Claude mobile app.
+	 */
+	readonly remoteControl?: boolean | undefined;
 }
 
 export interface ListSlashCommandsParams {

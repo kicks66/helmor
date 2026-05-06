@@ -188,6 +188,9 @@ pub struct AgentSendRequest {
     /// How to apply the system prompt: "append" (default) or "replace".
     #[serde(default)]
     pub system_prompt_mode: Option<String>,
+    /// Enable remote control for this session (Claude-only).
+    #[serde(default)]
+    pub remote_control: Option<bool>,
 }
 
 #[cfg(test)]

@@ -485,6 +485,7 @@ export class ClaudeSessionManager implements SessionManager {
 				thinking: { type: "adaptive", display: "summarized" },
 				...(effectiveFastMode ? { settings: { fastMode: true } } : {}),
 				...buildSystemPromptOption(params.systemPrompt, params.systemPromptMode),
+				...(params.remoteControl ? { extraArgs: { "remote-control": null } } : {}),
 				hooks: {
 					PreToolUse: [
 						{

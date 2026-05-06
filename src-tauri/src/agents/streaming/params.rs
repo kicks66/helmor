@@ -23,6 +23,7 @@ pub struct BuildSendMessageParamsInput<'a> {
     pub claude_auth_token: Option<&'a str>,
     pub system_prompt: Option<&'a str>,
     pub system_prompt_mode: Option<&'a str>,
+    pub remote_control: bool,
 }
 
 /// Build the `sendMessage` request params that the sidecar receives.
@@ -69,6 +70,11 @@ pub fn build_send_message_params(input: BuildSendMessageParamsInput<'_>) -> Valu
             if let Some(mode) = input.system_prompt_mode {
                 obj.insert("systemPromptMode".to_string(), Value::String(mode.to_string()));
             }
+        }
+    }
+    if input.remote_control {
+        if let Some(obj) = params.as_object_mut() {
+            obj.insert("remoteControl".to_string(), Value::Bool(true));
         }
     }
     params

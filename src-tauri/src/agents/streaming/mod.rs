@@ -132,6 +132,7 @@ pub(super) fn stream_via_sidecar(
         claude_auth_token: model.claude_auth_token.as_deref(),
         system_prompt: request.system_prompt.as_deref(),
         system_prompt_mode: request.system_prompt_mode.as_deref(),
+        remote_control: request.remote_control.unwrap_or(false),
     });
 
     // Surface the `/add-dir` decision in logs — we often debug linked-

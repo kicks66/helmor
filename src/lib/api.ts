@@ -158,6 +158,8 @@ export type AgentSendRequest = {
 	systemPrompt?: string | null;
 	/** How to apply the system prompt: "append" augments default, "replace" overrides it. */
 	systemPromptMode?: "replace" | "append" | null;
+	/** Enable remote control for this session (Claude-only). */
+	remoteControl?: boolean | null;
 };
 
 export type WorkspaceSummary = {

@@ -1012,6 +1012,7 @@ export function useConversationStreaming({
 				fastMode,
 				systemPrompt,
 				systemPromptMode,
+				remoteControl,
 				forceQueue,
 				followUpBehaviorOverride,
 			}: SubmitPayload,
@@ -1348,6 +1349,7 @@ export function useConversationStreaming({
 						files: filePaths,
 						systemPrompt: systemPrompt ?? undefined,
 						systemPromptMode: systemPromptMode ?? undefined,
+						remoteControl: remoteControl || undefined,
 					},
 					(event) => {
 						if (event.kind === "update") {
