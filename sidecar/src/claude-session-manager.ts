@@ -141,6 +141,25 @@ interface LiveSession {
 	readonly emitter: SidecarEmitter;
 }
 
+/**
+ * A persistent session keeps a single `query()` alive across turns,
+ * enabling `--remote-control` which requires a long-lived CLI process.
+ * New local messages are pushed into `promptSource`; the background
+ * event loop forwards SDK events to the current emitter/requestId.
+ */
+interface PersistentSession {
+	readonly query: Query;
+	readonly abortController: AbortController;
+	readonly promptSource: Pushable<SDKUserMessage>;
+	/** Mutable — updated each time a new turn starts via `sendMessage`. */
+	requestId: string;
+	emitter: SidecarEmitter;
+	/** Resolves when the current turn's terminal result arrives. */
+	turnDone: Promise<void>;
+	/** Call to signal the current turn completed. */
+	resolveTurn: () => void;
+}
+
 const VALID_PERMISSION_MODES = [
 	"default",
 	"plan",
@@ -303,6 +322,7 @@ async function buildUserMessageWithImages(
 
 export class ClaudeSessionManager implements SessionManager {
 	private readonly sessions = new Map<string, LiveSession>();
+	private readonly persistentSessions = new Map<string, PersistentSession>();
 	private readonly pendingPermissions = new Map<
 		string,
 		(resolution: PermissionResolution) => void
@@ -404,6 +424,21 @@ export class ClaudeSessionManager implements SessionManager {
 		params: SendMessageParams,
 		emitter: SidecarEmitter,
 	): Promise<void> {
+		// Route to persistent session if remote control is on and one exists.
+		if (params.remoteControl) {
+			const existing = this.persistentSessions.get(params.sessionId);
+			if (existing) {
+				return this.sendIntoPersistentSession(
+					requestId,
+					params,
+					emitter,
+					existing,
+				);
+			}
+			// First turn with RC — create the persistent session below.
+			return this.createPersistentSession(requestId, params, emitter);
+		}
+
 		const {
 			sessionId,
 			prompt,
@@ -659,6 +694,433 @@ export class ClaudeSessionManager implements SessionManager {
 				resolve({ action: "cancel" });
 			}
 		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Persistent session (remote control) helpers
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Build the SDK query options shared by both per-turn and persistent modes.
+	 * Extracted so the two paths stay in sync.
+	 */
+	private buildQueryOptions(
+		params: SendMessageParams,
+		abortController: AbortController,
+		promptSource: Pushable<SDKUserMessage>,
+		isResumeOnly: boolean,
+		requestId: string,
+		emitter: SidecarEmitter,
+	) {
+		const {
+			model,
+			cwd,
+			resume,
+			permissionMode,
+			effortLevel,
+			fastMode,
+			claudeEnvironment,
+		} = params;
+		const additionalDirectories = [...(params.additionalDirectories ?? [])];
+		const effectiveFastMode =
+			fastMode === true && modelSupportsFastMode("claude", model);
+		const claudeEnv =
+			claudeEnvironment && Object.keys(claudeEnvironment).length > 0
+				? claudeEnvironment
+				: undefined;
+		const additionalDirectoryEnv =
+			additionalDirectories.length > 0
+				? { CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1" }
+				: undefined;
+		const queryEnv =
+			claudeEnv || additionalDirectoryEnv
+				? { ...claudeEnv, ...additionalDirectoryEnv }
+				: undefined;
+
+		return {
+			prompt: (isResumeOnly ? "" : promptSource) as
+				| string
+				| AsyncIterable<SDKUserMessage>,
+			options: {
+				abortController,
+				pathToClaudeCodeExecutable: CLAUDE_CLI_PATH,
+				...executableOptions(),
+				cwd: cwd || undefined,
+				...(additionalDirectories.length > 0
+					? { additionalDirectories }
+					: {}),
+				...(queryEnv ? { env: queryEnv } : {}),
+				model: model || undefined,
+				...(resume ? { resume } : {}),
+				permissionMode: parsePermissionMode(permissionMode),
+				allowDangerouslySkipPermissions: true,
+				effort: parseEffort(effortLevel),
+				thinking: {
+					type: "adaptive" as const,
+					display: "summarized" as const,
+				},
+				...(effectiveFastMode ? { settings: { fastMode: true } } : {}),
+				...buildSystemPromptOption(
+					params.systemPrompt,
+					params.systemPromptMode,
+				),
+				...(params.remoteControl
+					? { extraArgs: { "remote-control": null } }
+					: {}),
+				hooks: {
+					PreToolUse: [
+						{
+							hooks: [
+								async (
+									input: HookInput,
+									toolUseID: string | undefined,
+								) =>
+									this.handleDeferredToolHook(input, toolUseID),
+							],
+						},
+					],
+				},
+				onElicitation: async (
+					request: Parameters<
+						NonNullable<
+							import("@anthropic-ai/claude-agent-sdk").Options["onElicitation"]
+						>
+					>[0],
+					options: Parameters<
+						NonNullable<
+							import("@anthropic-ai/claude-agent-sdk").Options["onElicitation"]
+						>
+					>[1],
+				): Promise<ElicitationResult> => {
+					const elicitationId =
+						request.elicitationId ?? randomUUID();
+					emitter.elicitationRequest(
+						requestId,
+						request.serverName,
+						request.message,
+						request.mode,
+						request.url,
+						elicitationId,
+						request.requestedSchema as
+							| Record<string, unknown>
+							| undefined,
+					);
+					return await new Promise<ElicitationResult>(
+						(resolve) => {
+							this.pendingElicitations.set(
+								elicitationId,
+								resolve,
+							);
+							options.signal.addEventListener(
+								"abort",
+								() => {
+									this.pendingElicitations.delete(
+										elicitationId,
+									);
+									resolve({ action: "cancel" });
+								},
+								{ once: true },
+							);
+						},
+					);
+				},
+				includePartialMessages: true,
+				settingSources: ["user", "project", "local"] as Array<
+					"user" | "project" | "local"
+				>,
+				canUseTool: async (
+					_toolName: string,
+					input: Record<string, unknown>,
+					options: {
+						toolUseID: string;
+						title?: string;
+						description?: string;
+						signal: AbortSignal;
+						suggestions?: PermissionUpdate[];
+					},
+				) => {
+					if (DEFERRED_TOOL_NAMES.has(_toolName)) {
+						return {
+							behavior: "allow" as const,
+							updatedInput: input,
+						};
+					}
+					if (_toolName === "ExitPlanMode") {
+						const plan = extractExitPlanContent(input);
+						if (plan) {
+							emitter.planCaptured(
+								requestId,
+								options.toolUseID,
+								plan,
+							);
+						}
+						return {
+							behavior: "deny" as const,
+							message:
+								"Plan captured by the client. " +
+								"Do NOT continue generating text or call any tools. " +
+								"The turn is over. The user will respond in a new turn.",
+						};
+					}
+					const permissionId = options.toolUseID;
+					emitter.permissionRequest(
+						requestId,
+						permissionId,
+						_toolName,
+						input,
+						options.title,
+						options.description,
+					);
+					const resolution =
+						await new Promise<PermissionResolution>((resolve) => {
+							this.pendingPermissions.set(
+								permissionId,
+								resolve,
+							);
+							options.signal.addEventListener(
+								"abort",
+								() => {
+									this.pendingPermissions.delete(
+										permissionId,
+									);
+									resolve({ behavior: "deny" });
+								},
+								{ once: true },
+							);
+						});
+					if (resolution.behavior === "allow") {
+						const updatedPermissions =
+							resolution.updatedPermissions ??
+							options.suggestions;
+						const nextPermissionMode =
+							extractSessionPermissionMode(
+								updatedPermissions,
+							);
+						if (nextPermissionMode) {
+							emitter.permissionModeChanged(
+								requestId,
+								nextPermissionMode,
+							);
+						}
+						return {
+							behavior: "allow" as const,
+							updatedInput: input,
+							updatedPermissions,
+						};
+					}
+					return {
+						behavior: "deny" as const,
+						message: resolution.message ?? "User denied",
+					};
+				},
+			},
+		};
+	}
+
+	/**
+	 * Create a persistent session with remote control. The query stays alive
+	 * across turns; a background loop iterates events and forwards them to
+	 * the current emitter.
+	 */
+	private async createPersistentSession(
+		requestId: string,
+		params: SendMessageParams,
+		emitter: SidecarEmitter,
+	): Promise<void> {
+		const { sessionId, prompt, model } = params;
+		const abortController = new AbortController();
+		const additionalDirectories = [...(params.additionalDirectories ?? [])];
+		const promptWithContext = prependLinkedDirectoriesContext(
+			prompt,
+			additionalDirectories,
+		);
+		const { text, imagePaths } = parseImageRefs(promptWithContext);
+		const promptSource = createPushable<SDKUserMessage>();
+		const isResumeOnly = text === "" && imagePaths.length === 0;
+
+		if (!isResumeOnly) {
+			const initialMessage =
+				imagePaths.length === 0
+					? ({
+							type: "user",
+							message: { role: "user", content: text },
+							parent_tool_use_id: null,
+						} as SDKUserMessage)
+					: await buildUserMessageWithImages(text, imagePaths);
+			promptSource.push(initialMessage);
+		}
+
+		let resolveTurn: () => void = () => {};
+		let turnDone = new Promise<void>((r) => {
+			resolveTurn = r;
+		});
+
+		const persistent: PersistentSession = {
+			query: null as unknown as Query, // set below
+			abortController,
+			promptSource,
+			requestId,
+			emitter,
+			turnDone,
+			resolveTurn,
+		};
+
+		const queryArgs = this.buildQueryOptions(
+			params,
+			abortController,
+			promptSource,
+			isResumeOnly,
+			requestId,
+			emitter,
+		);
+		const q = query(queryArgs);
+
+		// Patch the query reference onto the persistent session.
+		(persistent as { query: Query }).query = q;
+		this.persistentSessions.set(sessionId, persistent);
+
+		// Also register in `sessions` so steer() and stopSession() work.
+		this.sessions.set(sessionId, {
+			query: q,
+			abortController,
+			promptSource,
+			requestId,
+			emitter,
+		});
+
+		logger.info(`[${requestId}] persistent RC session created`, { sessionId });
+
+		// Background event loop — keeps running until the query ends or is aborted.
+		void (async () => {
+			try {
+				for await (const message of q) {
+					logger.sdkEvent(persistent.requestId, message);
+
+					if (isDeferredToolResult(message)) {
+						persistent.emitter.deferredToolUse(
+							persistent.requestId,
+							message.deferred_tool_use.id,
+							message.deferred_tool_use.name,
+							message.deferred_tool_use.input,
+						);
+						continue;
+					}
+
+					const passthroughMessage =
+						stripDeferredToolUseFromAssistant(message);
+					if (passthroughMessage) {
+						persistent.emitter.passthrough(
+							persistent.requestId,
+							passthroughMessage,
+						);
+					}
+
+					if (isTerminalResult(message)) {
+						const meta = buildClaudeStoredMeta(
+							message,
+							model ?? "",
+						);
+						if (meta) {
+							persistent.emitter.contextUsageUpdated(
+								persistent.requestId,
+								sessionId,
+								JSON.stringify(meta),
+							);
+						}
+						persistent.emitter.end(persistent.requestId);
+						// Signal the turn is done but DON'T close the query.
+						persistent.resolveTurn();
+						// Reset for the next turn.
+						const nextTurn = new Promise<void>((r) => {
+							persistent.resolveTurn = r;
+						});
+						persistent.turnDone = nextTurn;
+					}
+				}
+			} catch (err) {
+				if (isAbortError(err)) {
+					persistent.emitter.aborted(
+						persistent.requestId,
+						"user_requested",
+					);
+				} else {
+					logger.error("Persistent RC session event loop error", {
+						sessionId,
+						...errorDetails(err),
+					});
+				}
+			} finally {
+				try {
+					q.close();
+				} catch (closeErr) {
+					logger.error("Persistent RC session cleanup failed", {
+						sessionId,
+						...errorDetails(closeErr),
+					});
+				}
+				promptSource.close();
+				this.persistentSessions.delete(sessionId);
+				this.sessions.delete(sessionId);
+			}
+		})();
+
+		// Wait for the first turn to complete before returning.
+		await persistent.turnDone;
+	}
+
+	/**
+	 * Push a new message into an existing persistent session (subsequent
+	 * turn). The background event loop is already running.
+	 */
+	private async sendIntoPersistentSession(
+		requestId: string,
+		params: SendMessageParams,
+		emitter: SidecarEmitter,
+		persistent: PersistentSession,
+	): Promise<void> {
+		const additionalDirectories = [...(params.additionalDirectories ?? [])];
+		const promptWithContext = prependLinkedDirectoriesContext(
+			params.prompt,
+			additionalDirectories,
+		);
+		const { text, imagePaths } = parseImageRefs(promptWithContext);
+
+		if (text === "" && imagePaths.length === 0) {
+			// Resume-only — nothing to push.
+			emitter.end(requestId);
+			return;
+		}
+
+		const sdkMessage =
+			imagePaths.length === 0
+				? ({
+						type: "user",
+						message: { role: "user", content: text },
+						parent_tool_use_id: null,
+					} as SDKUserMessage)
+				: await buildUserMessageWithImages(text, imagePaths);
+
+		// Update the persistent session to use the new turn's emitter/requestId.
+		persistent.requestId = requestId;
+		persistent.emitter = emitter;
+
+		// Also update the sessions map so steer() picks up the new emitter.
+		this.sessions.set(params.sessionId, {
+			query: persistent.query,
+			abortController: persistent.abortController,
+			promptSource: persistent.promptSource,
+			requestId,
+			emitter,
+		});
+
+		persistent.promptSource.push(sdkMessage);
+		logger.info(`[${requestId}] pushed into persistent RC session`, {
+			sessionId: params.sessionId,
+			preview: text.slice(0, 60),
+		});
+
+		// Wait for this turn's terminal result.
+		await persistent.turnDone;
 	}
 
 	/**
@@ -1081,6 +1543,12 @@ export class ClaudeSessionManager implements SessionManager {
 	}
 
 	async stopSession(sessionId: string): Promise<void> {
+		const persistent = this.persistentSessions.get(sessionId);
+		if (persistent) {
+			persistent.abortController.abort();
+			// The background loop's finally block handles cleanup.
+			return;
+		}
 		const session = this.sessions.get(sessionId);
 		if (session) {
 			session.abortController.abort();
@@ -1103,6 +1571,12 @@ export class ClaudeSessionManager implements SessionManager {
 			}
 		}
 		this.sessions.clear();
+		// Persistent sessions are also in the sessions map, but abort
+		// explicitly in case the snapshot missed them.
+		for (const [, persistent] of this.persistentSessions) {
+			persistent.abortController.abort();
+		}
+		this.persistentSessions.clear();
 		for (const [elicitationId, resolve] of this.pendingElicitations) {
 			this.pendingElicitations.delete(elicitationId);
 			resolve({ action: "cancel" });
