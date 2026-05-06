@@ -2,6 +2,7 @@
  * `SessionManager` implementation backed by the Claude Agent SDK.
  */
 
+import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -303,6 +304,13 @@ async function buildUserMessageWithImages(
 
 export class ClaudeSessionManager implements SessionManager {
 	private readonly sessions = new Map<string, LiveSession>();
+	/** Long-lived `claude --remote-control --resume` processes, keyed by
+	 *  the Kmor session id. Spawned after the first successful turn when
+	 *  `remoteControl` is requested; killed on stop/shutdown. */
+	private readonly rcProcesses = new Map<
+		string,
+		{ process: import("node:child_process").ChildProcess; providerSessionId: string }
+	>();
 	private readonly pendingPermissions = new Map<
 		string,
 		(resolution: PermissionResolution) => void
@@ -485,7 +493,6 @@ export class ClaudeSessionManager implements SessionManager {
 				thinking: { type: "adaptive", display: "summarized" },
 				...(effectiveFastMode ? { settings: { fastMode: true } } : {}),
 				...buildSystemPromptOption(params.systemPrompt, params.systemPromptMode),
-				...(params.remoteControl ? { extraArgs: { "remote-control": null } } : {}),
 				hooks: {
 					PreToolUse: [
 						{
@@ -596,9 +603,20 @@ export class ClaudeSessionManager implements SessionManager {
 			emitter,
 		});
 
+		let providerSessionId: string | null = null;
 		try {
 			for await (const message of q) {
 				logger.sdkEvent(requestId, message);
+				// Capture the provider session ID from the init event.
+				if (
+					message.type === "system" &&
+					"subtype" in message &&
+					(message as { subtype?: string }).subtype === "init" &&
+					"session_id" in message
+				) {
+					providerSessionId =
+						(message as { session_id?: string }).session_id ?? null;
+				}
 				if (isDeferredToolResult(message)) {
 					emitter.deferredToolUse(
 						requestId,
@@ -624,6 +642,19 @@ export class ClaudeSessionManager implements SessionManager {
 							requestId,
 							sessionId,
 							JSON.stringify(meta),
+						);
+					}
+					// Spawn RC process after a successful turn if requested.
+					if (
+						params.remoteControl &&
+						providerSessionId &&
+						isResultMessage(message) &&
+						!this.rcProcesses.has(sessionId)
+					) {
+						this.spawnRcProcess(
+							sessionId,
+							providerSessionId,
+							cwd || process.cwd(),
 						);
 					}
 					emitter.end(requestId);
@@ -1080,7 +1111,104 @@ export class ClaudeSessionManager implements SessionManager {
 		}
 	}
 
+	// -----------------------------------------------------------------------
+	// Remote control process management
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Spawn a `claude --remote-control --resume <providerSessionId>` process
+	 * that registers the session with Anthropic's bridge. The process stays
+	 * alive until explicitly killed via `killRcProcess` or `shutdown`.
+	 */
+	private spawnRcProcess(
+		kmorSessionId: string,
+		providerSessionId: string,
+		cwd: string,
+	): void {
+		// Don't double-spawn for the same session.
+		if (this.rcProcesses.has(kmorSessionId)) {
+			logger.info("RC process already running, skipping spawn", {
+				kmorSessionId,
+				providerSessionId,
+			});
+			return;
+		}
+
+		const args = [
+			"--remote-control",
+			"--resume",
+			providerSessionId,
+			"--output-format",
+			"stream-json",
+		];
+		logger.info("Spawning RC process", {
+			kmorSessionId,
+			providerSessionId,
+			cmd: `claude ${args.join(" ")}`,
+			cwd,
+		});
+
+		const child = spawn("claude", args, {
+			cwd,
+			stdio: ["ignore", "pipe", "pipe"],
+			detached: false,
+		});
+
+		child.stdout?.on("data", (data: Buffer) => {
+			logger.debug("RC process stdout", {
+				kmorSessionId,
+				data: data.toString().trim().slice(0, 200),
+			});
+		});
+
+		child.stderr?.on("data", (data: Buffer) => {
+			logger.debug("RC process stderr", {
+				kmorSessionId,
+				data: data.toString().trim().slice(0, 200),
+			});
+		});
+
+		child.on("exit", (code, signal) => {
+			logger.info("RC process exited", {
+				kmorSessionId,
+				providerSessionId,
+				code,
+				signal,
+			});
+			this.rcProcesses.delete(kmorSessionId);
+		});
+
+		child.on("error", (err) => {
+			logger.error("RC process error", {
+				kmorSessionId,
+				...errorDetails(err),
+			});
+			this.rcProcesses.delete(kmorSessionId);
+		});
+
+		this.rcProcesses.set(kmorSessionId, {
+			process: child,
+			providerSessionId,
+		});
+	}
+
+	private killRcProcess(kmorSessionId: string): void {
+		const rc = this.rcProcesses.get(kmorSessionId);
+		if (!rc) return;
+		logger.info("Killing RC process", { kmorSessionId });
+		try {
+			rc.process.kill("SIGTERM");
+		} catch (err) {
+			logger.error("Failed to kill RC process", {
+				kmorSessionId,
+				...errorDetails(err),
+			});
+		}
+		this.rcProcesses.delete(kmorSessionId);
+	}
+
 	async stopSession(sessionId: string): Promise<void> {
+		this.killRcProcess(sessionId);
 		const session = this.sessions.get(sessionId);
 		if (session) {
 			session.abortController.abort();
@@ -1089,6 +1217,10 @@ export class ClaudeSessionManager implements SessionManager {
 	}
 
 	async shutdown(): Promise<void> {
+		// Kill all RC processes first.
+		for (const [kmorSessionId] of this.rcProcesses) {
+			this.killRcProcess(kmorSessionId);
+		}
 		// Snapshot first — `query.close()` triggers the finally block in
 		// sendMessage which mutates `this.sessions`.
 		const snapshot = Array.from(this.sessions.entries());
